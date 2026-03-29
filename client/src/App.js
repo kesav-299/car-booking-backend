@@ -1,23 +1,72 @@
 import React, { useState, useEffect } from "react";
 
 function App() {
+
+  // 🔐 AUTH STATES
+  const [page, setPage] = useState("login");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  // 🚗 BOOKING STATES
   const [car, setCar] = useState("Swift");
   const [days, setDays] = useState(1);
   const [bookings, setBookings] = useState([]);
 
-  // Fetch bookings
+  // =========================
+  // 📡 FETCH BOOKINGS
+  // =========================
   const fetchBookings = async () => {
-  const res = await fetch("https://car-booking-backend-dhaw.onrender.com/bookings");
+    const res = await fetch("https://car-booking-backend-dhaw.onrender.com/bookings");
     const data = await res.json();
     setBookings(data);
   };
 
   useEffect(() => {
-    fetchBookings();
-  }, []);
+    if (page === "home") {
+      fetchBookings();
+    }
+  }, [page]);
 
-  // Handle booking
+  // =========================
+  // 🔐 LOGIN
+  // =========================
+  const handleLogin = async () => {
+    const res = await fetch("https://car-booking-backend-dhaw.onrender.com/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    alert(data.message);
+
+    if (data.token) {
+      setPage("home");
+    }
+  };
+
+  // =========================
+  // 📝 SIGNUP
+  // =========================
+  const handleSignup = async () => {
+    await fetch("https://car-booking-backend-dhaw.onrender.com/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    alert("Signup successful");
+    setPage("login");
+  };
+
+  // =========================
+  // 🚗 BOOKING
+  // =========================
   const handleBooking = async () => {
     await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
       method: "POST",
@@ -31,6 +80,70 @@ function App() {
     fetchBookings();
   };
 
+  // =========================
+  // 🔐 LOGIN UI
+  // =========================
+  if (page === "login") {
+    return (
+      <div style={{ textAlign: "center", marginTop: "100px" }}>
+        <h2>Login 🚗</h2>
+
+        <input
+          placeholder="Email"
+          onChange={(e) => setEmail(e.target.value)}
+        /><br /><br />
+
+        <input
+          type="password"
+          placeholder="Password"
+          onChange={(e) => setPassword(e.target.value)}
+        /><br /><br />
+
+        <button onClick={handleLogin}>Login</button>
+
+        <p style={{ cursor: "pointer" }} onClick={() => setPage("signup")}>
+          Don't have account? Signup
+        </p>
+      </div>
+    );
+  }
+
+  // =========================
+  // 📝 SIGNUP UI
+  // =========================
+  if (page === "signup") {
+    return (
+      <div style={{ textAlign: "center", marginTop: "100px" }}>
+        <h2>Signup 🚗</h2>
+
+        <input
+          placeholder="Name"
+          onChange={(e) => setName(e.target.value)}
+        /><br /><br />
+
+        <input
+          placeholder="Email"
+          onChange={(e) => setEmail(e.target.value)}
+        /><br /><br />
+
+        <input
+          type="password"
+          placeholder="Password"
+          onChange={(e) => setPassword(e.target.value)}
+        /><br /><br />
+
+        <button onClick={handleSignup}>Signup</button>
+
+        <p style={{ cursor: "pointer" }} onClick={() => setPage("login")}>
+          Already have account? Login
+        </p>
+      </div>
+    );
+  }
+
+  // =========================
+  // 🏠 HOME (BOOKING UI)
+  // =========================
   return (
     <div style={{
       fontFamily: "Arial",
@@ -48,11 +161,16 @@ function App() {
         />
         <div>
           <h1 style={{ margin: 0 }}>Vargo 🚗</h1>
-          <p style={{ margin: 0, color: "#555", fontSize: "14px" }}>
+          <p style={{ margin: 0, color: "#555" }}>
             Move Smarter. Travel Faster ⚡
           </p>
         </div>
       </div>
+
+      {/* LOGOUT */}
+      <button onClick={() => setPage("login")} style={{ float: "right" }}>
+        Logout
+      </button>
 
       {/* BOOKING FORM */}
       <div style={{
@@ -69,14 +187,9 @@ function App() {
           placeholder="Enter your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{ width: "100%", padding: "10px", margin: "10px 0" }}
         />
 
-        <select
-          value={car}
-          onChange={(e) => setCar(e.target.value)}
-          style={{ width: "100%", padding: "10px", margin: "10px 0" }}
-        >
+        <select value={car} onChange={(e) => setCar(e.target.value)}>
           <option>Swift</option>
           <option>Innova</option>
           <option>Creta</option>
@@ -86,21 +199,9 @@ function App() {
           type="number"
           value={days}
           onChange={(e) => setDays(e.target.value)}
-          style={{ width: "100%", padding: "10px", margin: "10px 0" }}
         />
 
-        <button
-          onClick={handleBooking}
-          style={{
-            width: "100%",
-            padding: "12px",
-            backgroundColor: "#111827",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer"
-          }}
-        >
+        <button onClick={handleBooking}>
           Book Now
         </button>
       </div>
@@ -110,13 +211,7 @@ function App() {
         <h3>📋 Bookings</h3>
 
         {bookings.map((b) => (
-          <div key={b.id} style={{
-            background: "#fff",
-            padding: "10px",
-            margin: "10px 0",
-            borderRadius: "8px",
-            boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
-          }}>
+          <div key={b.id}>
             <p><b>Name:</b> {b.name}</p>
             <p><b>Car:</b> {b.car}</p>
             <p><b>Days:</b> {b.days}</p>
@@ -124,9 +219,7 @@ function App() {
         ))}
       </div>
 
-      <p style={{ textAlign: "center", color: "#777" }}>
-        © 2026 Vargo
-      </p>
+      <p style={{ textAlign: "center" }}>© 2026 Vargo</p>
     </div>
   );
 }
