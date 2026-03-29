@@ -17,10 +17,15 @@ function App() {
   // 📡 FETCH BOOKINGS
   // =========================
   const fetchBookings = async () => {
-    const res = await fetch("https://car-booking-backend-dhaw.onrender.com/bookings");
-    const data = await res.json();
-    setBookings(data);
-  };
+  const user_id = localStorage.getItem("user_id");
+
+  const res = await fetch(
+    `https://car-booking-backend-dhaw.onrender.com/bookings/${user_id}`
+  );
+
+  const data = await res.json();
+  setBookings(data);
+};
 
   useEffect(() => {
     if (page === "home") {
@@ -69,13 +74,15 @@ function App() {
   // 🚗 BOOKING
   // =========================
   const handleBooking = async () => {
-    await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ name, car, days })
-    });
+  const user_id = localStorage.getItem("user_id");
+
+  await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ name, car, days, user_id })
+  });
 
     alert("✅ Booking Confirmed!");
     fetchBookings();
