@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 
 const app = express();
 
-// ✅ CORS (Allow your frontend)
+// ✅ CORS
 app.use(cors({
   origin: [
     "http://localhost:3000",
@@ -18,7 +18,7 @@ app.use(cors({
 
 app.use(express.json());
 
-// ✅ Database connection (Railway)
+// ✅ DB CONNECTION
 const db = mysql.createConnection({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
@@ -35,16 +35,18 @@ db.connect(err => {
   }
 });
 
+
 // ==============================
 // 🚗 BOOKING APIs
 // ==============================
 
-// Insert booking
+// ✅ INSERT BOOKING (WITH USER_ID)
 app.post("/book", (req, res) => {
-  const { name, car, days } = req.body;
+  const { name, car, days, user_id } = req.body;
 
-  const sql = "INSERT INTO booking (name, car, days) VALUES (?, ?, ?)";
-  db.query(sql, [name, car, days], (err, result) => {
+  const sql = "INSERT INTO booking (name, car, days, user_id) VALUES (?, ?, ?, ?)";
+  
+  db.query(sql, [name, car, days, user_id], (err, result) => {
     if (err) {
       console.log(err);
       return res.status(500).send("Error inserting");
@@ -53,9 +55,14 @@ app.post("/book", (req, res) => {
   });
 });
 
-// Get all bookings
-app.get("/bookings", (req, res) => {
-  db.query("SELECT * FROM booking", (err, result) => {
+
+// ✅ GET BOOKINGS FOR SPECIFIC USER
+app.get("/bookings/:user_id", (req, res) => {
+  const user_id = req.params.user_id;
+
+  const sql = "SELECT * FROM booking WHERE user_id = ?";
+
+  db.query(sql, [user_id], (err, result) => {
     if (err) {
       console.log(err);
       return res.status(500).send("Error fetching");
@@ -64,11 +71,12 @@ app.get("/bookings", (req, res) => {
   });
 });
 
+
 // ==============================
-// 🔐 AUTH APIs (Signup / Login)
+// 🔐 AUTH APIs
 // ==============================
 
-// Signup
+// ✅ SIGNUP
 app.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -79,7 +87,7 @@ app.post("/signup", async (req, res) => {
     db.query(sql, [name, email, hashedPassword], (err, result) => {
       if (err) {
         console.log(err);
-        return res.status(500).send("User already exists or error");
+        return res.status(500).send("User already exists");
       }
       res.send("Signup successful");
     });
@@ -88,11 +96,13 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// Login
+
+// ✅ LOGIN
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
   const sql = "SELECT * FROM users WHERE email = ?";
+  
   db.query(sql, [email], async (err, result) => {
     if (err) return res.status(500).send("Error");
 
@@ -112,24 +122,27 @@ app.post("/login", (req, res) => {
       expiresIn: "1h"
     });
 
+    // ✅ SEND USER ID ALSO
     res.json({
-     message: "Login successful",
-     token,
-     userId: user.id 
-   });
+      message: "Login successful",
+      token,
+      userId: user.id
+    });
   });
 });
 
+
 // ==============================
-// 🌍 ROOT ROUTE (Optional)
+// 🌍 ROOT ROUTE
 // ==============================
 
 app.get("/", (req, res) => {
   res.send("Vargo API Running 🚗");
 });
 
+
 // ==============================
-// 🚀 START SERVER
+// 🚀 SERVER START
 // ==============================
 
 const PORT = process.env.PORT || 3001;

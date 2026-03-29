@@ -44,9 +44,10 @@ function App() {
     alert(data.message);
 
     if (data.token) {
-      setPage("home");
-    }
-  };
+     localStorage.setItem("user_id", data.userId);  // 👈 ADD
+     setPage("home");
+    } 
+ };
 
   // =========================
   // 📝 SIGNUP
