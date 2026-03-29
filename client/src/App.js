@@ -29,6 +29,14 @@ function App() {
   };
 
   // =========================
+  // 📅 FORMAT DATE
+  // =========================
+  const formatDate = (date) => {
+    if (!date) return "-";
+    return new Date(date).toISOString().split("T")[0];
+  };
+
+  // =========================
   // FETCH BOOKINGS
   // =========================
   const fetchBookings = async () => {
@@ -114,21 +122,13 @@ function App() {
   };
 
   // =========================
-  // BOOKING (FINAL FIX)
+  // BOOKING
   // =========================
   const handleBooking = async () => {
     const user_id = localStorage.getItem("user_id");
 
-    // 🔥 FORCE VALID VALUES
-    if (!from || !to) {
-      alert("Select cities properly");
-      return;
-    }
-
-    if (!startDate || !endDate) {
-      alert("Select dates");
-      return;
-    }
+    if (!from || !to) return alert("Select cities");
+    if (!startDate || !endDate) return alert("Select dates");
 
     const today = new Date();
     const start = new Date(startDate);
@@ -138,21 +138,12 @@ function App() {
       return alert("Cannot book past dates");
     }
 
-    if (end < start) return alert("End date must be after start date");
+    if (end < start) return alert("Invalid date range");
 
     const diff = (end - start) / (1000*60*60*24);
-
     if (diff > 14) return alert("Max 14 days allowed");
 
     const calculatedDays = Math.ceil(diff);
-
-    // 🔥 DEBUG
-    console.log("SENDING DATA:", {
-      from,
-      to,
-      startDate,
-      endDate
-    });
 
     const res = await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
       method: "POST",
@@ -171,10 +162,7 @@ function App() {
 
     const text = await res.text();
 
-    if (!res.ok) {
-      alert(text);
-      return;
-    }
+    if (!res.ok) return alert(text);
 
     alert("✅ Booking Confirmed!");
     fetchBookings();
@@ -187,6 +175,7 @@ function App() {
     return (
       <div style={{ textAlign:"center", marginTop:"100px" }}>
         <h2>Login 🚗</h2>
+
         <input placeholder="Email" onChange={e=>setEmail(e.target.value)} /><br/><br/>
         <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} /><br/><br/>
 
@@ -206,6 +195,7 @@ function App() {
     return (
       <div style={{ textAlign:"center", marginTop:"100px" }}>
         <h2>Signup 🚗</h2>
+
         <input placeholder="Name" onChange={e=>setName(e.target.value)} /><br/><br/>
         <input placeholder="Email" onChange={e=>setEmail(e.target.value)} /><br/><br/>
         <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} /><br/><br/>
@@ -264,7 +254,7 @@ function App() {
             borderRadius: "10px"
           }}>
             <h3>📍 {b.from_city || "N/A"} → {b.to_city || "N/A"}</h3>
-            <p>📅 {b.startDate || "-"} → {b.endDate || "-"}</p>
+            <p>📅 {formatDate(b.startDate)} → {formatDate(b.endDate)}</p>
             <p>🚗 {b.car} | ⏳ {b.days} days</p>
           </div>
         ))}
