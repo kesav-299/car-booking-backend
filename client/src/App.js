@@ -18,7 +18,6 @@ function App() {
 
   const cities = ["Visakhapatnam","Vijayawada","Srikakulam","Araku","Tirupati","Hyderabad"];
 
-  // 🚗 CAR DATA WITH IMAGES
   const cars = [
     { name: "Dzire", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/159099/dzire.jpeg" },
     { name: "Swift", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/54399/swift.jpeg" },
@@ -61,6 +60,8 @@ function App() {
 
   const fetchBookings = async () => {
     const user_id = localStorage.getItem("user_id");
+    if (!user_id) return;
+
     const res = await fetch(`https://car-booking-backend-dhaw.onrender.com/bookings/${user_id}`);
     const data = await res.json();
     setBookings(data);
@@ -70,7 +71,7 @@ function App() {
     if (page === "home") fetchBookings();
   }, [page]);
 
-  // ⚡ FAST LOGIN
+  // LOGIN
   const handleLogin = async () => {
     setLoading(true);
 
@@ -93,7 +94,7 @@ function App() {
       setPage("home");
 
     } catch {
-      alert("Server slow, try again");
+      alert("Server slow");
     }
 
     setLoading(false);
@@ -192,9 +193,9 @@ function App() {
           gridTemplateColumns:"1fr 1fr",
           gap:"15px"
         }}>
-          {cars.map(c => (
+          {cars.map((c, index) => (
             <div
-              key={c.name}
+              key={index}
               onClick={()=>setCar(c.name)}
               style={{
                 borderRadius:"15px",
@@ -205,7 +206,11 @@ function App() {
                 transition:"0.3s"
               }}
             >
-              <img src={c.img} style={{width:"100%",height:"120px",objectFit:"cover"}} />
+              <img 
+                src={c.img} 
+                alt={c.name} 
+                style={{width:"100%",height:"120px",objectFit:"cover"}} 
+              />
               <div style={{padding:"10px"}}>
                 <h4>{c.name}</h4>
                 <p>₹{getFare(c.name)}</p>
@@ -234,8 +239,8 @@ function App() {
       <div style={{ maxWidth:"600px", margin:"30px auto" }}>
         <h3>Your Bookings</h3>
 
-        {bookings.map(b => (
-          <div key={b.id} style={{background:"#1f2937",padding:"15px",margin:"10px 0",borderRadius:"10px"}}>
+        {bookings.map((b, i) => (
+          <div key={i} style={{background:"#1f2937",padding:"15px",margin:"10px 0",borderRadius:"10px"}}>
             <p>📍 {b.from_city} → {b.to_city}</p>
             <p>📅 {formatDate(b.startDate)} → {formatDate(b.endDate)}</p>
             <p>🚗 {b.car}</p>
