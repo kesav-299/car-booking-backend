@@ -2,20 +2,34 @@ import React, { useState, useEffect } from "react";
 
 function App() {
 
-  // 🔐 AUTH STATES
   const [page, setPage] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🚗 BOOKING STATES
   const [car, setCar] = useState("Swift");
-  const [days, setDays] = useState(1);
   const [bookings, setBookings] = useState([]);
 
+  const [from, setFrom] = useState("Visakhapatnam");
+  const [to, setTo] = useState("Vijayawada");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const cities = ["Visakhapatnam","Vijayawada","Srikakulam","Araku","Tirupati","Hyderabad"];
+
+  const cars = ["Dzire","Swift","Nexon","Creta","XUV 700","Harrier","Safari","X3","Innova","Baleno"];
+
+  const distances = {
+    "Visakhapatnam-Vijayawada": 350,
+    "Visakhapatnam-Srikakulam": 120,
+    "Visakhapatnam-Araku": 110,
+    "Vijayawada-Tirupati": 430,
+    "Visakhapatnam-Hyderabad": 620
+  };
+
   // =========================
-  // 📡 FETCH BOOKINGS (USER BASED)
+  // FETCH BOOKINGS
   // =========================
   const fetchBookings = async () => {
     const user_id = localStorage.getItem("user_id");
@@ -29,13 +43,11 @@ function App() {
   };
 
   useEffect(() => {
-    if (page === "home") {
-      fetchBookings();
-    }
+    if (page === "home") fetchBookings();
   }, [page]);
 
   // =========================
-  // 🔐 LOGIN (FIXED + LOADING)
+  // LOGIN
   // =========================
   const handleLogin = async () => {
     setLoading(true);
@@ -43,9 +55,7 @@ function App() {
     try {
       const res = await fetch("https://car-booking-backend-dhaw.onrender.com/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ email, password })
       });
 
@@ -58,13 +68,12 @@ function App() {
       }
 
       const data = JSON.parse(text);
-
       localStorage.setItem("user_id", data.userId);
 
       alert("Login successful");
       setPage("home");
 
-    } catch (err) {
+    } catch {
       alert("Network error");
     }
 
@@ -72,14 +81,12 @@ function App() {
   };
 
   // =========================
-  // 📝 SIGNUP
+  // SIGNUP
   // =========================
   const handleSignup = async () => {
     await fetch("https://car-booking-backend-dhaw.onrender.com/signup", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ name, email, password })
     });
 
@@ -88,175 +95,181 @@ function App() {
   };
 
   // =========================
-  // 🚗 BOOKING
+  // FARE
+  // =========================
+  const calculateFare = () => {
+    const key = `${from}-${to}`;
+    const reverseKey = `${to}-${from}`;
+    const distance = distances[key] || distances[reverseKey];
+
+    if (!distance) return 0;
+
+    const priceMap = {
+      "Dzire": 10, "Swift": 10, "Baleno": 11,
+      "Nexon": 12, "Creta": 13, "XUV 700": 15,
+      "Harrier": 16, "Safari": 17, "X3": 20, "Innova": 14
+    };
+
+    return distance * priceMap[car];
+  };
+
+  // =========================
+  // BOOKING (FINAL FIX)
   // =========================
   const handleBooking = async () => {
     const user_id = localStorage.getItem("user_id");
 
-    await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ name, car, days, user_id })
+    // 🔥 FORCE VALID VALUES
+    if (!from || !to) {
+      alert("Select cities properly");
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      alert("Select dates");
+      return;
+    }
+
+    const today = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (start < new Date(today.setHours(0,0,0,0))) {
+      return alert("Cannot book past dates");
+    }
+
+    if (end < start) return alert("End date must be after start date");
+
+    const diff = (end - start) / (1000*60*60*24);
+
+    if (diff > 14) return alert("Max 14 days allowed");
+
+    const calculatedDays = Math.ceil(diff);
+
+    // 🔥 DEBUG
+    console.log("SENDING DATA:", {
+      from,
+      to,
+      startDate,
+      endDate
     });
+
+    const res = await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        name,
+        car,
+        days: calculatedDays,
+        user_id,
+        from: from.trim(),
+        to: to.trim(),
+        startDate,
+        endDate
+      })
+    });
+
+    const text = await res.text();
+
+    if (!res.ok) {
+      alert(text);
+      return;
+    }
 
     alert("✅ Booking Confirmed!");
     fetchBookings();
   };
 
   // =========================
-  // 🔐 LOGIN UI
+  // LOGIN UI
   // =========================
   if (page === "login") {
     return (
-      <div style={{ textAlign: "center", marginTop: "100px" }}>
+      <div style={{ textAlign:"center", marginTop:"100px" }}>
         <h2>Login 🚗</h2>
-
-        <input
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-        /><br /><br />
-
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        /><br /><br />
+        <input placeholder="Email" onChange={e=>setEmail(e.target.value)} /><br/><br/>
+        <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} /><br/><br/>
 
         <button onClick={handleLogin} disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        <p style={{ cursor: "pointer" }} onClick={() => setPage("signup")}>
-          Don't have account? Signup
-        </p>
+        <p onClick={()=>setPage("signup")}>Signup</p>
       </div>
     );
   }
 
   // =========================
-  // 📝 SIGNUP UI
+  // SIGNUP UI
   // =========================
   if (page === "signup") {
     return (
-      <div style={{ textAlign: "center", marginTop: "100px" }}>
+      <div style={{ textAlign:"center", marginTop:"100px" }}>
         <h2>Signup 🚗</h2>
-
-        <input
-          placeholder="Name"
-          onChange={(e) => setName(e.target.value)}
-        /><br /><br />
-
-        <input
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-        /><br /><br />
-
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        /><br /><br />
+        <input placeholder="Name" onChange={e=>setName(e.target.value)} /><br/><br/>
+        <input placeholder="Email" onChange={e=>setEmail(e.target.value)} /><br/><br/>
+        <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} /><br/><br/>
 
         <button onClick={handleSignup}>Signup</button>
-
-        <p style={{ cursor: "pointer" }} onClick={() => setPage("login")}>
-          Already have account? Login
-        </p>
+        <p onClick={()=>setPage("login")}>Login</p>
       </div>
     );
   }
 
   // =========================
-  // 🏠 HOME UI
+  // HOME UI
   // =========================
   return (
-    <div style={{
-      fontFamily: "Arial",
-      backgroundColor: "#f4f6f8",
-      minHeight: "100vh",
-      padding: "20px"
-    }}>
+    <div style={{ background:"#111827", color:"white", minHeight:"100vh", padding:"20px" }}>
 
-      {/* HEADER */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <img 
-          src="https://cdn-icons-png.flaticon.com/512/854/854894.png" 
-          alt="logo" 
-          width="50" 
-        />
-        <div>
-          <h1 style={{ margin: 0 }}>Vargo 🚗</h1>
-          <p style={{ margin: 0, color: "#555" }}>
-            Move Smarter. Travel Faster ⚡
-          </p>
-        </div>
+      <div style={{ display:"flex", justifyContent:"space-between" }}>
+        <h1>Vargo 🚗</h1>
+        <button onClick={()=>{
+          localStorage.removeItem("user_id");
+          setPage("login");
+        }}>Logout</button>
       </div>
 
-      {/* LOGOUT */}
-      <button onClick={() => {
-        localStorage.removeItem("user_id");
-        setPage("login");
-      }} style={{ float: "right" }}>
-        Logout
-      </button>
+      <div style={{ background:"#1f2937", padding:"25px", borderRadius:"12px", maxWidth:"500px", margin:"40px auto" }}>
+        <h2>Plan Your Ride</h2>
 
-      {/* BOOKING FORM */}
-      <div style={{
-        background: "white",
-        padding: "25px",
-        borderRadius: "12px",
-        maxWidth: "400px",
-        margin: "40px auto",
-        boxShadow: "0 5px 15px rgba(0,0,0,0.1)"
-      }}>
-        <h2 style={{ textAlign: "center" }}>Book Your Ride</h2>
+        <select value={from} onChange={e=>setFrom(e.target.value)}>
+          {cities.map(c=><option key={c}>{c}</option>)}
+        </select><br/><br/>
 
-        <input
-          placeholder="Enter your name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        /><br /><br />
+        <select value={to} onChange={e=>setTo(e.target.value)}>
+          {cities.map(c=><option key={c}>{c}</option>)}
+        </select><br/><br/>
 
-        <select value={car} onChange={(e) => setCar(e.target.value)}>
-          <option>Swift</option>
-          <option>Innova</option>
-          <option>Creta</option>
-        </select><br /><br />
+        <input type="date" onChange={e=>setStartDate(e.target.value)} /><br/><br/>
+        <input type="date" onChange={e=>setEndDate(e.target.value)} /><br/><br/>
 
-        <input
-          type="number"
-          value={days}
-          onChange={(e) => setDays(e.target.value)}
-        /><br /><br />
+        <select value={car} onChange={e=>setCar(e.target.value)}>
+          {cars.map(c=><option key={c}>{c}</option>)}
+        </select><br/><br/>
 
-        <button onClick={handleBooking}>
-          Book Now
-        </button>
+        <h3>Fare: ₹{calculateFare()}</h3>
+
+        <button onClick={handleBooking}>Book Ride 🚀</button>
       </div>
 
-      {/* BOOKINGS */}
-      <div style={{ maxWidth: "500px", margin: "20px auto" }}>
-        <h3>📋 Your Bookings</h3>
-
-        {bookings.length === 0 && <p>No bookings yet</p>}
+      <div style={{ maxWidth:"500px", margin:"20px auto" }}>
+        <h3>Your Bookings</h3>
 
         {bookings.map((b) => (
           <div key={b.id} style={{
-            background: "#fff",
-            padding: "10px",
-            margin: "10px 0",
-            borderRadius: "8px"
+            background: "#1f2937",
+            padding: "15px",
+            margin: "12px 0",
+            borderRadius: "10px"
           }}>
-            <p><b>Name:</b> {b.name}</p>
-            <p><b>Car:</b> {b.car}</p>
-            <p><b>Days:</b> {b.days}</p>
+            <h3>📍 {b.from_city || "N/A"} → {b.to_city || "N/A"}</h3>
+            <p>📅 {b.startDate || "-"} → {b.endDate || "-"}</p>
+            <p>🚗 {b.car} | ⏳ {b.days} days</p>
           </div>
         ))}
       </div>
 
-      <p style={{ textAlign: "center" }}>© 2026 Vargo</p>
     </div>
   );
 }
