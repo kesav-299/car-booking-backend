@@ -113,9 +113,10 @@ app.post("/login", (req, res) => {
     });
 
     res.json({
-      message: "Login successful",
-      token
-    });
+     message: "Login successful",
+     token,
+     userId: user.id 
+   });
   });
 });
 
