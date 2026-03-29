@@ -8,7 +8,7 @@ function App() {
 
   // Fetch bookings
   const fetchBookings = async () => {
-    const res = await fetch("http://localhost:3001/bookings");
+  const res = await fetch("https://car-booking-backend-dhaw.onrender.com/bookings");
     const data = await res.json();
     setBookings(data);
   };
@@ -19,7 +19,7 @@ function App() {
 
   // Handle booking
   const handleBooking = async () => {
-    await fetch("http://localhost:3001/book", {
+    await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

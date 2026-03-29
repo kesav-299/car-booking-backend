@@ -3,7 +3,14 @@ const mysql = require("mysql2");
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://vargoo.vercel.app"
+  ],
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 app.use(express.json());
 
 // ✅ Use Railway DB (environment variables)
