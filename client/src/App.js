@@ -19,23 +19,32 @@ function App() {
   const cities = ["Visakhapatnam","Vijayawada","Srikakulam","Araku","Tirupati","Hyderabad"];
 
   const cars = [
-    { name: "Dzire", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/159099/dzire.jpeg" },
-    { name: "Swift", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/54399/swift.jpeg" },
-    { name: "Nexon", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/141867/nexon.jpeg" },
-    { name: "Creta", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/106815/creta.jpeg" },
-    { name: "XUV 700", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/42355/xuv700.jpeg" },
-    { name: "Harrier", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/139139/harrier.jpeg" },
-    { name: "Safari", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/139145/safari.jpeg" },
-    { name: "X3", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/157953/x3.jpeg" }
+    { name: "Dzire", img: "https://i0.wp.com/bestsellingcarsblog.com/wp-content/uploads/2025/06/Maruti-Suzuki-DZire-India-May-2025.jpg?resize=600%2C398" },
+    { name: "Swift", img: "https://www.autovista.in/assets/img/new_cars_colour_variants/swift-colour-solid-fire-red.jpg" },
+    { name: "Nexon", img: "https://images.autox.com/uploads/cars/2024/02/tata-nexon-500x261.jpg" },
+    { name: "Creta", img: "https://cdn-s3.autocarindia.com/hyundai/Creta-Electric/500_5172.jpg?w=640&q=75" },
+    { name: "XUV 700", img: "https://asset.autocarindia.com/static/image-galleries/images/20260106_062810_99ca7cda.jpg?w=728&q=75" },
+    { name: "Harrier", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXOe3j2LEqZtPVlxBtvO0fAVNrTQUwMFfFoQ&s" },
+    { name: "Safari", img: "https://spn-sta.spinny.com/blog/20231103174155/new-Tata-Safari-1160x653.webp?compress=true&quality=80&w=1200&dpr=2.6" },
+    { name: "X3", img: "https://di-uploads-pod23.dealerinspire.com/bmwofowingsmills/uploads/2023/02/IMG_05281.jpg" }
   ];
 
   const distances = {
-    "Visakhapatnam-Vijayawada": 350,
-    "Visakhapatnam-Srikakulam": 120,
-    "Visakhapatnam-Araku": 110,
-    "Vijayawada-Tirupati": 430,
-    "Visakhapatnam-Hyderabad": 620
-  };
+  "Visakhapatnam-Vijayawada": 350,
+  "Visakhapatnam-Srikakulam": 120,
+  "Visakhapatnam-Araku": 110,
+  "Visakhapatnam-Tirupati": 780,
+  "Visakhapatnam-Hyderabad": 620,
+
+  "Vijayawada-Tirupati": 430,
+  "Vijayawada-Hyderabad": 280,
+
+  "Tirupati-Hyderabad": 560,
+  "Tirupati-Srikakulam": 900,
+
+  "Srikakulam-Hyderabad": 700,
+  "Araku-Hyderabad": 650
+};
 
   const formatDate = (date) => {
     if (!date) return "-";
@@ -43,20 +52,24 @@ function App() {
   };
 
   const getFare = (selectedCar) => {
-    const key = `${from}-${to}`;
-    const reverseKey = `${to}-${from}`;
-    const distance = distances[key] || distances[reverseKey];
+  const key = `${from}-${to}`;
+  const reverseKey = `${to}-${from}`;
 
-    if (!distance) return 0;
+  let distance = distances[key] || distances[reverseKey];
 
-    const priceMap = {
-      "Dzire": 10, "Swift": 10, "Nexon": 12,
-      "Creta": 13, "XUV 700": 15, "Harrier": 16,
-      "Safari": 17, "X3": 20
-    };
+  if (!distance) {
+    console.log("No route found:", key);
+    return 1000; // fallback minimum price
+  }
 
-    return distance * (priceMap[selectedCar] || 10);
+  const priceMap = {
+    "Dzire": 10, "Swift": 10, "Nexon": 12,
+    "Creta": 13, "XUV 700": 15, "Harrier": 16,
+    "Safari": 17, "X3": 20
   };
+
+  return distance * (priceMap[selectedCar] || 10);
+};
 
   const fetchBookings = async () => {
     const user_id = localStorage.getItem("user_id");
