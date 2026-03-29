@@ -28,17 +28,30 @@ function App() {
     "Visakhapatnam-Hyderabad": 620
   };
 
-  // =========================
-  // 📅 FORMAT DATE
-  // =========================
+  // FORMAT DATE
   const formatDate = (date) => {
     if (!date) return "-";
     return new Date(date).toISOString().split("T")[0];
   };
 
-  // =========================
+  // GET FARE
+  const getFare = (selectedCar) => {
+    const key = `${from}-${to}`;
+    const reverseKey = `${to}-${from}`;
+    const distance = distances[key] || distances[reverseKey];
+
+    if (!distance) return 0;
+
+    const priceMap = {
+      "Dzire": 10, "Swift": 10, "Baleno": 11,
+      "Nexon": 12, "Creta": 13, "XUV 700": 15,
+      "Harrier": 16, "Safari": 17, "X3": 20, "Innova": 14
+    };
+
+    return distance * priceMap[selectedCar];
+  };
+
   // FETCH BOOKINGS
-  // =========================
   const fetchBookings = async () => {
     const user_id = localStorage.getItem("user_id");
 
@@ -54,9 +67,7 @@ function App() {
     if (page === "home") fetchBookings();
   }, [page]);
 
-  // =========================
   // LOGIN
-  // =========================
   const handleLogin = async () => {
     setLoading(true);
 
@@ -88,9 +99,7 @@ function App() {
     setLoading(false);
   };
 
-  // =========================
   // SIGNUP
-  // =========================
   const handleSignup = async () => {
     await fetch("https://car-booking-backend-dhaw.onrender.com/signup", {
       method: "POST",
@@ -102,28 +111,7 @@ function App() {
     setPage("login");
   };
 
-  // =========================
-  // FARE
-  // =========================
-  const calculateFare = () => {
-    const key = `${from}-${to}`;
-    const reverseKey = `${to}-${from}`;
-    const distance = distances[key] || distances[reverseKey];
-
-    if (!distance) return 0;
-
-    const priceMap = {
-      "Dzire": 10, "Swift": 10, "Baleno": 11,
-      "Nexon": 12, "Creta": 13, "XUV 700": 15,
-      "Harrier": 16, "Safari": 17, "X3": 20, "Innova": 14
-    };
-
-    return distance * priceMap[car];
-  };
-
-  // =========================
   // BOOKING
-  // =========================
   const handleBooking = async () => {
     const user_id = localStorage.getItem("user_id");
 
@@ -168,9 +156,7 @@ function App() {
     fetchBookings();
   };
 
-  // =========================
   // LOGIN UI
-  // =========================
   if (page === "login") {
     return (
       <div style={{ textAlign:"center", marginTop:"100px" }}>
@@ -188,9 +174,7 @@ function App() {
     );
   }
 
-  // =========================
   // SIGNUP UI
-  // =========================
   if (page === "signup") {
     return (
       <div style={{ textAlign:"center", marginTop:"100px" }}>
@@ -206,9 +190,7 @@ function App() {
     );
   }
 
-  // =========================
   // HOME UI
-  // =========================
   return (
     <div style={{ background:"#111827", color:"white", minHeight:"100vh", padding:"20px" }}>
 
@@ -223,6 +205,33 @@ function App() {
       <div style={{ background:"#1f2937", padding:"25px", borderRadius:"12px", maxWidth:"500px", margin:"40px auto" }}>
         <h2>Plan Your Ride</h2>
 
+        <h3>Select Car</h3>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "10px"
+        }}>
+          {cars.map(c => (
+            <div
+              key={c}
+              onClick={() => setCar(c)}
+              style={{
+                padding: "15px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                background: car === c ? "#2563eb" : "#374151"
+              }}
+            >
+              <h4>{c}</h4>
+              <p>₹{getFare(c)}</p>
+            </div>
+          ))}
+        </div>
+
+        <h3>Selected Car: {car}</h3>
+        <h3>Total Fare: ₹{getFare(car)}</h3>
+
         <select value={from} onChange={e=>setFrom(e.target.value)}>
           {cities.map(c=><option key={c}>{c}</option>)}
         </select><br/><br/>
@@ -233,12 +242,6 @@ function App() {
 
         <input type="date" onChange={e=>setStartDate(e.target.value)} /><br/><br/>
         <input type="date" onChange={e=>setEndDate(e.target.value)} /><br/><br/>
-
-        <select value={car} onChange={e=>setCar(e.target.value)}>
-          {cars.map(c=><option key={c}>{c}</option>)}
-        </select><br/><br/>
-
-        <h3>Fare: ₹{calculateFare()}</h3>
 
         <button onClick={handleBooking}>Book Ride 🚀</button>
       </div>
