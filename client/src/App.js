@@ -238,14 +238,10 @@ function App() {
 
       {/* IMAGE */}
       <img 
-        src={c.img}
-        onError={(e)=> e.target.src="https://via.placeholder.com/400x200"}
-        style={{
-          width:"100%",
-          height:"160px",
-          objectFit:"cover"
-        }}
-      />
+  src={c.img}
+  alt={c.name}
+  style={{width:"100%",height:"120px",objectFit:"cover"}} 
+/>
 
       {/* DETAILS */}
       <div style={{padding:"15px"}}>
