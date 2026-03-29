@@ -8,13 +8,15 @@
 /* BODY */
 body {
   font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(to right, #0f172a, #1e293b);
+  background: radial-gradient(circle at top, #1e293b, #020617);
   color: white;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* SCROLLBAR */
 ::-webkit-scrollbar {
+  height: 6px;
   width: 6px;
 }
 ::-webkit-scrollbar-thumb {
@@ -25,73 +27,124 @@ body {
 /* INPUTS */
 input, select {
   width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 10px;
   border: none;
   outline: none;
   font-size: 14px;
+  background: #1f2937;
+  color: white;
 }
 
 /* BUTTON */
 button {
-  padding: 12px;
+  padding: 14px;
   width: 100%;
-  border-radius: 8px;
+  border-radius: 12px;
   border: none;
-  background: #2563eb;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
   font-size: 16px;
   cursor: pointer;
   transition: 0.3s;
+  font-weight: 600;
 }
 
 button:hover {
-  background: #1d4ed8;
-  transform: scale(1.02);
+  transform: scale(1.03);
+  box-shadow: 0 8px 20px rgba(59,130,246,0.5);
 }
 
-/* CARD */
-.card {
-  background: #1f2937;
-  padding: 15px;
-  border-radius: 12px;
-  margin: 10px 0;
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: translateY(-3px);
+/* CAR SLIDER */
+.car-slider {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding: 10px 0;
 }
 
 /* CAR CARD */
 .car-card {
-  border-radius: 15px;
+  min-width: 260px;
+  border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
+  background: linear-gradient(145deg, #1f2937, #111827);
   transition: 0.3s;
-  background: #1f2937;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.car-card:hover {
+  transform: scale(1.05);
+}
+
+.car-card.active {
+  border: 2px solid #3b82f6;
+  transform: scale(1.07);
 }
 
 .car-card img {
   width: 100%;
-  height: 120px;
+  height: 180px;
   object-fit: cover;
 }
 
-.car-card.active {
-  background: #2563eb;
-  transform: scale(1.05);
+/* CARD CONTENT */
+.card {
+  background: #111827;
+  padding: 15px;
+  border-radius: 15px;
+  margin: 10px 0;
 }
 
 /* HEADINGS */
-h1, h2, h3 {
+h1 {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+h2 {
+  font-size: 20px;
+}
+
+h3 {
+  font-size: 16px;
+}
+
+/* MAP (Leaflet Fix) */
+.leaflet-container {
+  height: 250px;
+  width: 100%;
+  border-radius: 20px;
+  margin: 15px 0;
+}
+
+/* FLOATING PANEL */
+.bottom-panel {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 500px;
+  background: rgba(17,24,39,0.95);
+  backdrop-filter: blur(15px);
+  border-radius: 25px;
+  padding: 15px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+}
+
+/* ROUTE BOX */
+.route-box {
+  background: rgba(255,255,255,0.05);
+  padding: 12px;
+  border-radius: 12px;
   margin-bottom: 10px;
 }
 
-/* CENTER CONTAINER */
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding: 20px;
+/* TEXT */
+p {
+  font-size: 14px;
+  color: #9ca3af;
 }
