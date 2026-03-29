@@ -7,6 +7,7 @@ function App() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // 🚗 BOOKING STATES
   const [car, setCar] = useState("Swift");
@@ -14,18 +15,18 @@ function App() {
   const [bookings, setBookings] = useState([]);
 
   // =========================
-  // 📡 FETCH BOOKINGS
+  // 📡 FETCH BOOKINGS (USER BASED)
   // =========================
   const fetchBookings = async () => {
-  const user_id = localStorage.getItem("user_id");
+    const user_id = localStorage.getItem("user_id");
 
-  const res = await fetch(
-    `https://car-booking-backend-dhaw.onrender.com/bookings/${user_id}`
-  );
+    const res = await fetch(
+      `https://car-booking-backend-dhaw.onrender.com/bookings/${user_id}`
+    );
 
-  const data = await res.json();
-  setBookings(data);
-};
+    const data = await res.json();
+    setBookings(data);
+  };
 
   useEffect(() => {
     if (page === "home") {
@@ -34,25 +35,41 @@ function App() {
   }, [page]);
 
   // =========================
-  // 🔐 LOGIN
+  // 🔐 LOGIN (FIXED + LOADING)
   // =========================
   const handleLogin = async () => {
-    const res = await fetch("https://car-booking-backend-dhaw.onrender.com/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
+    setLoading(true);
 
-    const data = await res.json();
-    alert(data.message);
+    try {
+      const res = await fetch("https://car-booking-backend-dhaw.onrender.com/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
 
-    if (data.token) {
-     localStorage.setItem("user_id", data.userId);  // 👈 ADD
-     setPage("home");
-    } 
- };
+      const text = await res.text();
+
+      if (!res.ok) {
+        alert(text);
+        setLoading(false);
+        return;
+      }
+
+      const data = JSON.parse(text);
+
+      localStorage.setItem("user_id", data.userId);
+
+      alert("Login successful");
+      setPage("home");
+
+    } catch (err) {
+      alert("Network error");
+    }
+
+    setLoading(false);
+  };
 
   // =========================
   // 📝 SIGNUP
@@ -74,15 +91,15 @@ function App() {
   // 🚗 BOOKING
   // =========================
   const handleBooking = async () => {
-  const user_id = localStorage.getItem("user_id");
+    const user_id = localStorage.getItem("user_id");
 
-  await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ name, car, days, user_id })
-  });
+    await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ name, car, days, user_id })
+    });
 
     alert("✅ Booking Confirmed!");
     fetchBookings();
@@ -107,7 +124,9 @@ function App() {
           onChange={(e) => setPassword(e.target.value)}
         /><br /><br />
 
-        <button onClick={handleLogin}>Login</button>
+        <button onClick={handleLogin} disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
 
         <p style={{ cursor: "pointer" }} onClick={() => setPage("signup")}>
           Don't have account? Signup
@@ -150,7 +169,7 @@ function App() {
   }
 
   // =========================
-  // 🏠 HOME (BOOKING UI)
+  // 🏠 HOME UI
   // =========================
   return (
     <div style={{
@@ -176,7 +195,10 @@ function App() {
       </div>
 
       {/* LOGOUT */}
-      <button onClick={() => setPage("login")} style={{ float: "right" }}>
+      <button onClick={() => {
+        localStorage.removeItem("user_id");
+        setPage("login");
+      }} style={{ float: "right" }}>
         Logout
       </button>
 
@@ -195,19 +217,19 @@ function App() {
           placeholder="Enter your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-        />
+        /><br /><br />
 
         <select value={car} onChange={(e) => setCar(e.target.value)}>
           <option>Swift</option>
           <option>Innova</option>
           <option>Creta</option>
-        </select>
+        </select><br /><br />
 
         <input
           type="number"
           value={days}
           onChange={(e) => setDays(e.target.value)}
-        />
+        /><br /><br />
 
         <button onClick={handleBooking}>
           Book Now
@@ -216,10 +238,17 @@ function App() {
 
       {/* BOOKINGS */}
       <div style={{ maxWidth: "500px", margin: "20px auto" }}>
-        <h3>📋 Bookings</h3>
+        <h3>📋 Your Bookings</h3>
+
+        {bookings.length === 0 && <p>No bookings yet</p>}
 
         {bookings.map((b) => (
-          <div key={b.id}>
+          <div key={b.id} style={{
+            background: "#fff",
+            padding: "10px",
+            margin: "10px 0",
+            borderRadius: "8px"
+          }}>
             <p><b>Name:</b> {b.name}</p>
             <p><b>Car:</b> {b.car}</p>
             <p><b>Days:</b> {b.days}</p>
