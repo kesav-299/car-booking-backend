@@ -18,7 +18,17 @@ function App() {
 
   const cities = ["Visakhapatnam","Vijayawada","Srikakulam","Araku","Tirupati","Hyderabad"];
 
-  const cars = ["Dzire","Swift","Nexon","Creta","XUV 700","Harrier","Safari","X3","Innova","Baleno"];
+  // 🚗 CAR DATA WITH IMAGES
+  const cars = [
+    { name: "Dzire", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/159099/dzire.jpeg" },
+    { name: "Swift", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/54399/swift.jpeg" },
+    { name: "Nexon", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/141867/nexon.jpeg" },
+    { name: "Creta", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/106815/creta.jpeg" },
+    { name: "XUV 700", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/42355/xuv700.jpeg" },
+    { name: "Harrier", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/139139/harrier.jpeg" },
+    { name: "Safari", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/139145/safari.jpeg" },
+    { name: "X3", img: "https://imgd.aeplcdn.com/600x337/n/cw/ec/157953/x3.jpeg" }
+  ];
 
   const distances = {
     "Visakhapatnam-Vijayawada": 350,
@@ -28,13 +38,11 @@ function App() {
     "Visakhapatnam-Hyderabad": 620
   };
 
-  // FORMAT DATE
   const formatDate = (date) => {
     if (!date) return "-";
     return new Date(date).toISOString().split("T")[0];
   };
 
-  // GET FARE
   const getFare = (selectedCar) => {
     const key = `${from}-${to}`;
     const reverseKey = `${to}-${from}`;
@@ -43,22 +51,17 @@ function App() {
     if (!distance) return 0;
 
     const priceMap = {
-      "Dzire": 10, "Swift": 10, "Baleno": 11,
-      "Nexon": 12, "Creta": 13, "XUV 700": 15,
-      "Harrier": 16, "Safari": 17, "X3": 20, "Innova": 14
+      "Dzire": 10, "Swift": 10, "Nexon": 12,
+      "Creta": 13, "XUV 700": 15, "Harrier": 16,
+      "Safari": 17, "X3": 20
     };
 
-    return distance * priceMap[selectedCar];
+    return distance * (priceMap[selectedCar] || 10);
   };
 
-  // FETCH BOOKINGS
   const fetchBookings = async () => {
     const user_id = localStorage.getItem("user_id");
-
-    const res = await fetch(
-      `https://car-booking-backend-dhaw.onrender.com/bookings/${user_id}`
-    );
-
+    const res = await fetch(`https://car-booking-backend-dhaw.onrender.com/bookings/${user_id}`);
     const data = await res.json();
     setBookings(data);
   };
@@ -67,7 +70,7 @@ function App() {
     if (page === "home") fetchBookings();
   }, [page]);
 
-  // LOGIN
+  // ⚡ FAST LOGIN
   const handleLogin = async () => {
     setLoading(true);
 
@@ -78,28 +81,24 @@ function App() {
         body: JSON.stringify({ email, password })
       });
 
-      const text = await res.text();
+      const data = await res.json();
 
       if (!res.ok) {
-        alert(text);
+        alert(data);
         setLoading(false);
         return;
       }
 
-      const data = JSON.parse(text);
       localStorage.setItem("user_id", data.userId);
-
-      alert("Login successful");
       setPage("home");
 
     } catch {
-      alert("Network error");
+      alert("Server slow, try again");
     }
 
     setLoading(false);
   };
 
-  // SIGNUP
   const handleSignup = async () => {
     await fetch("https://car-booking-backend-dhaw.onrender.com/signup", {
       method: "POST",
@@ -111,27 +110,13 @@ function App() {
     setPage("login");
   };
 
-  // BOOKING
   const handleBooking = async () => {
     const user_id = localStorage.getItem("user_id");
 
-    if (!from || !to) return alert("Select cities");
     if (!startDate || !endDate) return alert("Select dates");
 
-    const today = new Date();
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    if (start < new Date(today.setHours(0,0,0,0))) {
-      return alert("Cannot book past dates");
-    }
-
-    if (end < start) return alert("Invalid date range");
-
-    const diff = (end - start) / (1000*60*60*24);
-    if (diff > 14) return alert("Max 14 days allowed");
-
-    const calculatedDays = Math.ceil(diff);
+    const diff = (new Date(endDate) - new Date(startDate)) / (1000*60*60*24);
+    const days = Math.ceil(diff);
 
     const res = await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
       method: "POST",
@@ -139,18 +124,16 @@ function App() {
       body: JSON.stringify({
         name,
         car,
-        days: calculatedDays,
+        days,
         user_id,
-        from: from.trim(),
-        to: to.trim(),
+        from,
+        to,
         startDate,
         endDate
       })
     });
 
-    const text = await res.text();
-
-    if (!res.ok) return alert(text);
+    if (!res.ok) return alert("Booking failed");
 
     alert("✅ Booking Confirmed!");
     fetchBookings();
@@ -159,14 +142,14 @@ function App() {
   // LOGIN UI
   if (page === "login") {
     return (
-      <div style={{ textAlign:"center", marginTop:"100px" }}>
+      <div style={{ textAlign:"center", marginTop:"120px" }}>
         <h2>Login 🚗</h2>
 
         <input placeholder="Email" onChange={e=>setEmail(e.target.value)} /><br/><br/>
         <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} /><br/><br/>
 
-        <button onClick={handleLogin} disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+        <button onClick={handleLogin}>
+          {loading ? "Loading..." : "Login"}
         </button>
 
         <p onClick={()=>setPage("signup")}>Signup</p>
@@ -177,7 +160,7 @@ function App() {
   // SIGNUP UI
   if (page === "signup") {
     return (
-      <div style={{ textAlign:"center", marginTop:"100px" }}>
+      <div style={{ textAlign:"center", marginTop:"120px" }}>
         <h2>Signup 🚗</h2>
 
         <input placeholder="Name" onChange={e=>setName(e.target.value)} /><br/><br/>
@@ -192,73 +175,70 @@ function App() {
 
   // HOME UI
   return (
-    <div style={{ background:"#111827", color:"white", minHeight:"100vh", padding:"20px" }}>
+    <div style={{
+      background: "linear-gradient(to right,#0f172a,#1e293b)",
+      color: "white",
+      minHeight: "100vh",
+      padding: "20px"
+    }}>
 
-      <div style={{ display:"flex", justifyContent:"space-between" }}>
-        <h1>Vargo 🚗</h1>
-        <button onClick={()=>{
-          localStorage.removeItem("user_id");
-          setPage("login");
-        }}>Logout</button>
-      </div>
+      <h1>Vargo 🚗</h1>
 
-      <div style={{ background:"#1f2937", padding:"25px", borderRadius:"12px", maxWidth:"500px", margin:"40px auto" }}>
-        <h2>Plan Your Ride</h2>
-
-        <h3>Select Car</h3>
+      <div style={{ maxWidth:"600px", margin:"auto" }}>
+        <h2>Select Your Ride</h2>
 
         <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "10px"
+          display:"grid",
+          gridTemplateColumns:"1fr 1fr",
+          gap:"15px"
         }}>
           {cars.map(c => (
             <div
-              key={c}
-              onClick={() => setCar(c)}
+              key={c.name}
+              onClick={()=>setCar(c.name)}
               style={{
-                padding: "15px",
-                borderRadius: "10px",
-                cursor: "pointer",
-                background: car === c ? "#2563eb" : "#374151"
+                borderRadius:"15px",
+                overflow:"hidden",
+                cursor:"pointer",
+                background: car===c.name ? "#2563eb" : "#1f2937",
+                transform: car===c.name ? "scale(1.05)" : "scale(1)",
+                transition:"0.3s"
               }}
             >
-              <h4>{c}</h4>
-              <p>₹{getFare(c)}</p>
+              <img src={c.img} style={{width:"100%",height:"120px",objectFit:"cover"}} />
+              <div style={{padding:"10px"}}>
+                <h4>{c.name}</h4>
+                <p>₹{getFare(c.name)}</p>
+              </div>
             </div>
           ))}
         </div>
 
-        <h3>Selected Car: {car}</h3>
-        <h3>Total Fare: ₹{getFare(car)}</h3>
+        <h3>Selected: {car}</h3>
+        <h3>Total: ₹{getFare(car)}</h3>
 
-        <select value={from} onChange={e=>setFrom(e.target.value)}>
+        <select onChange={e=>setFrom(e.target.value)}>
           {cities.map(c=><option key={c}>{c}</option>)}
-        </select><br/><br/>
+        </select>
 
-        <select value={to} onChange={e=>setTo(e.target.value)}>
+        <select onChange={e=>setTo(e.target.value)}>
           {cities.map(c=><option key={c}>{c}</option>)}
-        </select><br/><br/>
+        </select>
 
-        <input type="date" onChange={e=>setStartDate(e.target.value)} /><br/><br/>
-        <input type="date" onChange={e=>setEndDate(e.target.value)} /><br/><br/>
+        <input type="date" onChange={e=>setStartDate(e.target.value)} />
+        <input type="date" onChange={e=>setEndDate(e.target.value)} />
 
         <button onClick={handleBooking}>Book Ride 🚀</button>
       </div>
 
-      <div style={{ maxWidth:"500px", margin:"20px auto" }}>
+      <div style={{ maxWidth:"600px", margin:"30px auto" }}>
         <h3>Your Bookings</h3>
 
-        {bookings.map((b) => (
-          <div key={b.id} style={{
-            background: "#1f2937",
-            padding: "15px",
-            margin: "12px 0",
-            borderRadius: "10px"
-          }}>
-            <h3>📍 {b.from_city || "N/A"} → {b.to_city || "N/A"}</h3>
+        {bookings.map(b => (
+          <div key={b.id} style={{background:"#1f2937",padding:"15px",margin:"10px 0",borderRadius:"10px"}}>
+            <p>📍 {b.from_city} → {b.to_city}</p>
             <p>📅 {formatDate(b.startDate)} → {formatDate(b.endDate)}</p>
-            <p>🚗 {b.car} | ⏳ {b.days} days</p>
+            <p>🚗 {b.car}</p>
           </div>
         ))}
       </div>

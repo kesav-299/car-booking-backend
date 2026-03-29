@@ -18,41 +18,37 @@ app.use(cors({
 
 app.use(express.json());
 
-// ✅ DB CONNECTION
-const db = mysql.createConnection({
+// ✅ DB POOL (BETTER PERFORMANCE)
+const db = mysql.createPool({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT
+  port: process.env.MYSQLPORT,
+  connectionLimit: 10
 });
-
-db.connect(err => {
-  if (err) {
-    console.log("DB Error:", err);
-  } else {
-    console.log("MySQL Connected");
-  }
-});
-
 
 // ==============================
 // 🚗 BOOKING APIs
 // ==============================
 
-// ✅ INSERT BOOKING WITH DUPLICATE CHECK
 app.post("/book", (req, res) => {
-
-  console.log("REQ BODY:", req.body); // 🔥 DEBUG (very important)
 
   const { name, car, days, user_id, from, to, startDate, endDate } = req.body;
 
   // 🔴 VALIDATION
-  if (!startDate || !endDate || !from || !to) {
+  if (!user_id || !car || !from || !to || !startDate || !endDate) {
     return res.status(400).send("Missing booking details");
   }
 
-  // 🔥 CHECK OVERLAPPING BOOKINGS
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (end < start) {
+    return res.status(400).send("Invalid date range");
+  }
+
+  // 🔥 CHECK DUPLICATE / OVERLAP
   const checkSql = `
     SELECT * FROM booking 
     WHERE user_id = ?
@@ -72,12 +68,11 @@ app.post("/book", (req, res) => {
         return res.status(500).send("Error checking booking");
       }
 
-      // ❌ DUPLICATE FOUND
       if (result.length > 0) {
-        return res.status(400).send("You already have a booking in this date range");
+        return res.status(400).send("Booking already exists in this date range");
       }
 
-      // ✅ INSERT BOOKING (FIXED)
+      // ✅ INSERT
       const insertSql = `
         INSERT INTO booking 
         (name, car, days, user_id, from_city, to_city, startDate, endDate)
@@ -86,19 +81,10 @@ app.post("/book", (req, res) => {
 
       db.query(
         insertSql,
-        [
-          name,
-          car,
-          days,
-          user_id,
-          from || "UNKNOWN",
-          to || "UNKNOWN",
-          startDate || null,
-          endDate || null
-        ],
+        [name, car, days, user_id, from, to, startDate, endDate],
         (err) => {
           if (err) {
-            console.log("INSERT ERROR:", err);
+            console.log(err);
             return res.status(500).send("Error inserting booking");
           }
 
@@ -113,21 +99,18 @@ app.post("/book", (req, res) => {
 app.get("/bookings/:user_id", (req, res) => {
   const user_id = req.params.user_id;
 
-  const sql = `
-    SELECT * FROM booking 
-    WHERE user_id = ?
-    ORDER BY startDate DESC
-  `;
-
-  db.query(sql, [user_id], (err, result) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).send("Error fetching");
+  db.query(
+    "SELECT * FROM booking WHERE user_id = ? ORDER BY startDate DESC",
+    [user_id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send("Error fetching");
+      }
+      res.json(result);
     }
-    res.json(result);
-  });
+  );
 });
-
 
 // ==============================
 // 🔐 AUTH APIs
@@ -137,66 +120,74 @@ app.get("/bookings/:user_id", (req, res) => {
 app.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).send("Missing fields");
+  }
+
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const sql = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
-    db.query(sql, [name, email, hashedPassword], (err) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).send("User already exists");
+    db.query(
+      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+      [name, email, hashedPassword],
+      (err) => {
+        if (err) {
+          return res.status(400).send("User already exists");
+        }
+        res.send("Signup successful");
       }
-      res.send("Signup successful");
-    });
+    );
 
   } catch {
-    res.status(500).send("Error");
+    res.status(500).send("Server error");
   }
 });
 
-
-// ✅ LOGIN
+// ✅ LOGIN (FASTER + CLEAN)
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  const sql = "SELECT * FROM users WHERE email = ?";
+  db.query(
+    "SELECT * FROM users WHERE email = ?",
+    [email],
+    async (err, result) => {
 
-  db.query(sql, [email], async (err, result) => {
-    if (err) return res.status(500).send("Error");
+      if (err) return res.status(500).send("Server error");
 
-    if (result.length === 0) {
-      return res.status(400).send("User not found");
+      if (result.length === 0) {
+        return res.status(400).json("User not found");
+      }
+
+      const user = result[0];
+
+      const match = await bcrypt.compare(password, user.password);
+
+      if (!match) {
+        return res.status(400).json("Wrong password");
+      }
+
+      const token = jwt.sign(
+        { id: user.id },
+        process.env.JWT_SECRET || "secretkey",
+        { expiresIn: "1h" }
+      );
+
+      res.json({
+        message: "Login successful",
+        token,
+        userId: user.id
+      });
     }
-
-    const user = result[0];
-
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
-      return res.status(400).send("Wrong password");
-    }
-
-    const token = jwt.sign({ id: user.id }, "secretkey", {
-      expiresIn: "1h"
-    });
-
-    res.json({
-      message: "Login successful",
-      token,
-      userId: user.id
-    });
-  });
+  );
 });
-
 
 // ==============================
 // 🌍 ROOT ROUTE
 // ==============================
 
 app.get("/", (req, res) => {
-  res.send("Vargo API Running 🚗");
+  res.send("🚗 Vargo API Running");
 });
-
 
 // ==============================
 // 🚀 SERVER START
