@@ -6,33 +6,45 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ✅ Use Railway DB (environment variables)
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "car_booking"
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT
 });
 
+// Connect DB
 db.connect(err => {
-  if (err) console.log(err);
-  else console.log("MySQL Connected");
+  if (err) {
+    console.log("DB Error:", err);
+  } else {
+    console.log("MySQL Connected");
+  }
 });
 
+// Insert booking
 app.post("/book", (req, res) => {
   const { name, car, days } = req.body;
 
   const sql = "INSERT INTO booking (name, car, days) VALUES (?, ?, ?)";
   db.query(sql, [name, car, days], (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      return res.status(500).send("Error inserting");
+    }
     res.send("Booking successful");
   });
 });
 
-app.listen(3001, () => console.log("Server running on port 3001"));
-
+// Get bookings
 app.get("/bookings", (req, res) => {
   db.query("SELECT * FROM booking", (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      return res.status(500).send("Error fetching");
+    }
     res.json(result);
   });
 });

@@ -6,14 +6,13 @@ function App() {
   const [days, setDays] = useState(1);
   const [bookings, setBookings] = useState([]);
 
-  // Fetch bookings from backend
+  // Fetch bookings
   const fetchBookings = async () => {
     const res = await fetch("http://localhost:3001/bookings");
     const data = await res.json();
     setBookings(data);
   };
 
-  // Load bookings when page loads
   useEffect(() => {
     fetchBookings();
   }, []);
@@ -29,7 +28,7 @@ function App() {
     });
 
     alert("✅ Booking Confirmed!");
-    fetchBookings(); // refresh bookings
+    fetchBookings();
   };
 
   return (
@@ -43,11 +42,16 @@ function App() {
       {/* HEADER */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <img 
-          src="https://cdn-icons-png.flaticon.com/512/743/743922.png" 
+          src="https://cdn-icons-png.flaticon.com/512/854/854894.png" 
           alt="logo" 
           width="50" 
         />
-        <h1>QuickRide 🚗</h1>
+        <div>
+          <h1 style={{ margin: 0 }}>Vargo 🚗</h1>
+          <p style={{ margin: 0, color: "#555", fontSize: "14px" }}>
+            Move Smarter. Travel Faster ⚡
+          </p>
+        </div>
       </div>
 
       {/* BOOKING FORM */}
@@ -90,7 +94,7 @@ function App() {
           style={{
             width: "100%",
             padding: "12px",
-            backgroundColor: "#000",
+            backgroundColor: "#111827",
             color: "white",
             border: "none",
             borderRadius: "6px",
@@ -101,7 +105,7 @@ function App() {
         </button>
       </div>
 
-      {/* BOOKINGS LIST */}
+      {/* BOOKINGS */}
       <div style={{ maxWidth: "500px", margin: "20px auto" }}>
         <h3>📋 Bookings</h3>
 
@@ -121,7 +125,7 @@ function App() {
       </div>
 
       <p style={{ textAlign: "center", color: "#777" }}>
-        © 2026 QuickRide
+        © 2026 Vargo
       </p>
     </div>
   );
