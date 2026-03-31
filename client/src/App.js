@@ -279,7 +279,7 @@ function App() {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
-        name: localStorage.getItem("name"),
+        name,
         car,
         days,
         user_id,
