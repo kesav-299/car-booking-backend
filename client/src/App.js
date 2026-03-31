@@ -143,6 +143,8 @@ function App() {
     }
 
     localStorage.setItem("user_id", data.userId);
+    localStorage.setItem("name", data.name);
+    setName(data.name);
     setPage("home");
     setLoading(false);
   };
