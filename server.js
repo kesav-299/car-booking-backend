@@ -29,7 +29,7 @@ const db = mysql.createPool({
 });
 
 // ==============================
-// PROFILE APIs
+// PROFILE &  BOOKINGS
 // ==============================
 
 app.post("/update-profile", (req, res) => {
@@ -58,6 +58,22 @@ app.post("/update-profile", (req, res) => {
       res.send("Profile updated successfully");
     }
   );
+});
+
+app.post("/delete-account", (req,res)=>{
+  const { user_id } = req.body;
+
+  db.query("DELETE FROM users WHERE id=?", [user_id], ()=>{
+    res.send("Account deleted");
+  });
+});
+
+app.post("/cancel-booking", (req,res)=>{
+  const { booking_id } = req.body;
+
+  db.query("DELETE FROM booking WHERE id=?", [booking_id], ()=>{
+    res.send("Booking cancelled");
+  });
 });
 
 
