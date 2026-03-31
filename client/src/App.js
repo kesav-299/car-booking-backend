@@ -65,7 +65,7 @@ function App() {
     Araku: { Visakhapatnam: 110, Vizianagaram: 130 },
     Vijayawada: { Visakhapatnam: 350, Rajahmundry: 160, Tirupati: 430, Hyderabad: 280 },
     Rajahmundry: { Visakhapatnam: 190, Vijayawada: 160, Kakinada: 60 },
-    Kakinada: { Visakhapatnam: 160, Rajahmundry: 60 },
+    Kakinada: { Visakhapatnam: 160, Rajahmundry: 60, Hyderabad: 420 },
     Tirupati: { Vijayawada: 430, Hyderabad: 560, Visakhapatnam: 780 },
     Hyderabad: { Visakhapatnam: 620, Vijayawada: 280, Tirupati: 560 }
   };
@@ -93,6 +93,22 @@ function App() {
   return distance * (priceMap[selectedCar] || 10);
 };
 
+  const fetchProfile = async () => {
+
+  const user_id = localStorage.getItem("user_id");
+
+  const res = await fetch(
+    `https://car-booking-backend-dhaw.onrender.com/profile/${user_id}`
+  );
+
+  const data = await res.json();
+
+  setName(data.name);
+  setEmail(data.email);
+  setAge(data.age);
+  setGender(data.gender);
+  setPhone(data.phone);
+};
   // ❌ AUTO LOGIN REMOVED
 
   const fetchBookings = async () => {
@@ -106,6 +122,7 @@ function App() {
 
   useEffect(() => {
     if (page === "home") fetchBookings();
+    if (page === "profile") fetchProfile();
   }, [page]);
 
   const handleLogin = async () => {
@@ -260,7 +277,7 @@ function App() {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
-        name,
+        name: localStorage.getItem("name"),
         car,
         days,
         user_id,
@@ -393,7 +410,10 @@ function App() {
   return (
     <div style={{padding:"20px",color:"white"}}>
 
+      <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+      <button onClick={()=>setPage("home")}>⬅ Back</button>
       <h2>👤 Profile</h2>
+      </div>
 
       <input placeholder="Name" value={name} onChange={e=>setName(e.target.value)} />
       <input placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
@@ -428,7 +448,10 @@ if (page === "bookings") {
   return (
     <div style={{padding:"20px",color:"white"}}>
 
+      <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+      <button onClick={()=>setPage("home")}>⬅ Back</button>
       <h2>📋 Your Bookings</h2>
+      </div>
 
       {bookings.map((b,i)=>(
         <div key={i} style={{background:"#1f2937",padding:"15px",margin:"10px 0"}}>
@@ -479,12 +502,18 @@ if (page === "bookings") {
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:"20px"}}>
         {cars.map((c,i)=>(
-          <div key={i} onClick={()=>setCar(c.name)} style={{
-            background:"#1f2937",
-            borderRadius:"15px",
-            overflow:"hidden",
-            cursor:"pointer"
-          }}>
+          <div
+  onClick={()=>setCar(c.name)}
+  style={{
+    background: car === c.name ? "#2563eb" : "#1f2937",
+    borderRadius:"15px",
+    overflow:"hidden",
+    cursor:"pointer",
+    transform: car === c.name ? "scale(1.05)" : "scale(1)",
+    boxShadow: car === c.name ? "0 0 20px #2563eb" : "none",
+    transition:"0.3s"
+  }}
+>
             <img src={c.img} alt={c.name} style={{width:"100%",height:"140px",objectFit:"cover"}} />
             <div style={{padding:"10px"}}>
               <h3>{c.name}</h3>

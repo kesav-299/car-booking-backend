@@ -32,6 +32,16 @@ const db = mysql.createPool({
 // PROFILE &  BOOKINGS
 // ==============================
 
+app.get("/profile/:id", (req,res)=>{
+  const id = req.params.id;
+
+  db.query("SELECT * FROM users WHERE id=?", [id], (err,result)=>{
+    if (err) return res.status(500).send("Error");
+
+    res.json(result[0]);
+  });
+});
+
 app.post("/update-profile", (req, res) => {
 
   const { user_id, name, email, age, gender, phone } = req.body;
