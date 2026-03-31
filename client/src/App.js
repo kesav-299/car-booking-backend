@@ -98,23 +98,26 @@ function App() {
 
   const user_id = localStorage.getItem("user_id");
 
-  const res = await fetch(
-    `https://car-booking-backend-dhaw.onrender.com/profile/${user_id}`
-  );
+  if (!user_id || user_id === "undefined") return;
 
-let data;
+  try {
+    const res = await fetch(
+      `https://car-booking-backend-dhaw.onrender.com/profile/${user_id}`
+    );
 
+    const data = await res.json();
 
-const contentType = res.headers.get("content-type");
+    if (!data) return;
 
-if (contentType && contentType.includes("application/json")) {
-  data = await res.json();
-} 
-  setName(data.name);
-  setEmail(data.email);
-  setAge(data.age);
-  setGender(data.gender);
-  setPhone(data.phone);
+    setName(data.name || "");
+    setEmail(data.email || "");
+    setAge(data.age || "");
+    setGender(data.gender || "");
+    setPhone(data.phone || "");
+
+  } catch (err) {
+    console.log("Profile error:", err);
+  }
 };
   // ❌ AUTO LOGIN REMOVED
 
@@ -180,8 +183,9 @@ if (contentType && contentType.includes("application/json")) {
     localStorage.setItem("name", data.name);
     setName(data.name);
 
-    setPage("home");
-    setLoading(false);
+setTimeout(() => {
+  setPage("home");
+}, 100);    setLoading(false);
 
   } catch (err) {
     console.log(err);
