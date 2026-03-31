@@ -337,7 +337,7 @@ function App() {
          onKeyDown={(e)=> e.key==="Enter" && handleLogin()}
      /><br/><br/>
         
-        <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} onKeyDown = {(e)=> e.key == "Enter" && handleLogin()}/><br/><br/>
+        <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} onKeyDown = {(e)=> e.key === "Enter" && handleLogin()}/><br/><br/>
 
         <button onClick={handleLogin}>
           {loading ? "Loading..." : "Login"}
