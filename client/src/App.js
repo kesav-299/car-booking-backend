@@ -198,6 +198,19 @@ function App() {
   localStorage.clear();
   setPage("landing");
 };
+ 
+ const handleCancelBooking = async (id) => {
+
+  await fetch("https://car-booking-backend-dhaw.onrender.com/cancel-booking", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ booking_id: id })
+  });
+
+  alert("Booking cancelled");
+
+  fetchBookings();
+};
 
   const handleBooking = async () => {
 
@@ -404,6 +417,31 @@ function App() {
       >
         Delete Account
       </button>
+
+    </div>
+  );
+}
+
+// BOOKINGS TAB UI
+if (page === "bookings") {
+
+  return (
+    <div style={{padding:"20px",color:"white"}}>
+
+      <h2>📋 Your Bookings</h2>
+
+      {bookings.map((b,i)=>(
+        <div key={i} style={{background:"#1f2937",padding:"15px",margin:"10px 0"}}>
+
+          <p>📍 {b.from_city} → {b.to_city}</p>
+          <p>🚗 {b.car}</p>
+
+          <button onClick={()=>handleCancelBooking(b.id)}>
+            Cancel
+          </button>
+
+        </div>
+      ))}
 
     </div>
   );
