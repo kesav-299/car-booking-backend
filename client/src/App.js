@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 function App() {
   
   const [bookingLoading, setBookingLoading] = useState(false);
-  
+  const [editBooking, setEditBooking] = useState(null);
   const [popupShown, setPopupShown] = useState(false);
   const [popup, setPopup] = useState({ show:false, type:"", message:"" });
   const [page, setPage] = useState("landing");
@@ -101,7 +101,16 @@ function App() {
     `https://car-booking-backend-dhaw.onrender.com/profile/${user_id}`
   );
 
-  const data = await res.json();
+  let data;
+
+try {
+  data = await res.json();
+} catch {
+  const text = await res.text();
+  alert(text);
+  setLoading(false);
+  return;
+}
 
   setName(data.name);
   setEmail(data.email);
@@ -126,18 +135,33 @@ function App() {
   }, [page]);
 
   const handleLogin = async () => {
-    setLoading(true);
 
+  if (!email || !password) {
+    return alert("Please enter email and password");
+  }
+
+  setLoading(true);
+
+  try {
     const res = await fetch("https://car-booking-backend-dhaw.onrender.com/login", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ email, password })
     });
 
-    const data = await res.json();
+    let data;
+
+    try {
+      data = await res.json();
+    } catch {
+      const text = await res.text();
+      alert(text);
+      setLoading(false);
+      return;
+    }
 
     if (!res.ok) {
-      alert(data);
+      alert(data?.message || data || "Login failed");
       setLoading(false);
       return;
     }
@@ -145,9 +169,15 @@ function App() {
     localStorage.setItem("user_id", data.userId);
     localStorage.setItem("name", data.name);
     setName(data.name);
+
     setPage("home");
-    setLoading(false);
-  };
+
+  } catch {
+  alert("Server error");
+  setLoading(false); 
+  return;
+}
+};
 
   const handleLogout = () => {
     localStorage.removeItem("user_id");
@@ -231,7 +261,21 @@ function App() {
   fetchBookings();
 };
 
-  const handleBooking = async () => {
+  const handleEditBooking = (booking) => {
+  setEditBooking(booking);
+
+  setFrom(booking.from_city);
+  setTo(booking.to_city);
+  setStartDate(booking.startDate);
+  setEndDate(booking.endDate);
+  setCar(booking.car);
+
+  setPage("home");
+};
+
+
+  
+const handleBooking = async () => {
 
   if (bookingLoading) return;
 
@@ -270,15 +314,22 @@ function App() {
     });
   }
 
+  const isEdit = editBooking !== null;
+
   try {
     setBookingLoading(true); // 🔥 START LOADING
 
     const user_id = localStorage.getItem("user_id");
+    
+    const url = isEdit
+     ? "https://car-booking-backend-dhaw.onrender.com/update-booking"
+     : "https://car-booking-backend-dhaw.onrender.com/book";
 
-    const res = await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
+    const res = await fetch(url, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
+        booking_id: editBooking?.id,
         name,
         car,
         days,
@@ -304,7 +355,7 @@ function App() {
     setPopup({
       show:true,
       type:"success",
-      message:"Booking Confirmed 🚗"
+      message: isEdit ? "Booking Updated 🚗" : "Booking Confirmed 🚗"
     });
 
     setPopupShown(true);
@@ -315,6 +366,7 @@ function App() {
   }
 
   fetchBookings();
+  setEditBooking(null);  
 }
 
   } catch {
@@ -344,7 +396,7 @@ function App() {
       <h1 style={{fontSize:"42px"}}>🚗 Vargo</h1>
 
       <p style={{maxWidth:"400px"}}>
-        Book rides instantly like Uber & Ola.
+        Book rides instantly.
       </p>
 
       <div style={{marginTop:"20px"}}>
@@ -465,6 +517,10 @@ if (page === "bookings") {
             Cancel
           </button>
 
+          <button onClick={()=>handleEditBooking(b)} style={{marginLeft:"10px"}}>
+          Edit
+          </button>
+
         </div>
       ))}
 
@@ -558,7 +614,7 @@ if (page === "bookings") {
       <div className="spinner"></div>
       Booking...
     </>
-  ) : "Book Ride 🚀"}
+  ) : editBooking ? "Update Booking 🚗" : "Book Ride 🚀"}
 </button>
 
       {/* BOOKINGS */}

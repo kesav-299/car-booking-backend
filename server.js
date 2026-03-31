@@ -86,6 +86,34 @@ app.post("/cancel-booking", (req,res)=>{
   });
 });
 
+aapp.post("/update-booking", (req, res) => {
+
+  const { booking_id, car, from, to, startDate, endDate } = req.body;
+
+  if (!booking_id) {
+    return res.status(400).send("Booking ID missing");
+  }
+
+  const sql = `
+    UPDATE booking 
+    SET car=?, from_city=?, to_city=?, startDate=?, endDate=?
+    WHERE id=?
+  `;
+
+  db.query(
+    sql,
+    [car, from, to, startDate, endDate, booking_id],
+    (err) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send("Error updating booking");
+      }
+
+      res.send("Booking updated successfully 🚗");
+    }
+  );
+});
+
 
 // ==============================
 // 🚗 BOOKING APIs
