@@ -103,16 +103,13 @@ function App() {
   );
 
 let data;
-let text;
+
 
 const contentType = res.headers.get("content-type");
 
 if (contentType && contentType.includes("application/json")) {
   data = await res.json();
-} else {
-  text = await res.text();
-}
-
+} 
   setName(data.name);
   setEmail(data.email);
   setAge(data.age);
@@ -422,7 +419,7 @@ const handleBooking = async () => {
         justifyContent:"space-between",
         alignItems:"center"
       }}>
-        <h2 style={{letterSpacing:"1px"}}></h2>
+       
 
               </div>
 
