@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 
 function App() {
 
+  const [bookingLoading, setBookingLoading] = useState(false);
+
+  const [popup, setPopup] = useState({ show:false, type:"", message:"" });
   const [page, setPage] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -11,30 +14,56 @@ function App() {
   const [car, setCar] = useState("Swift");
   const [bookings, setBookings] = useState([]);
 
-  const [from, setFrom] = useState("Visakhapatnam");
-  const [to, setTo] = useState("Vijayawada");
+  // ❌ NO DEFAULT VALUES
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const cities = ["Visakhapatnam","Vijayawada","Srikakulam","Araku","Tirupati","Hyderabad"];
+  const cities = [
+    "Visakhapatnam",
+    "Vizianagaram",
+    "Srikakulam",
+    "Araku",
+    "Vijayawada",
+    "Rajahmundry",
+    "Kakinada",
+    "Tirupati",
+    "Hyderabad"
+  ];
 
   const cars = [
-  { name: "Dzire", img: "https://i0.wp.com/bestsellingcarsblog.com/wp-content/uploads/2025/06/Maruti-Suzuki-DZire-India-May-2025.jpg?resize=600%2C398" },
-  { name: "Swift", img: "https://www.autovista.in/assets/img/new_cars_colour_variants/swift-colour-solid-fire-red.jpg" },
-  { name: "Nexon", img: "https://images.autox.com/uploads/cars/2024/02/tata-nexon-500x261.jpg" },
-  { name: "Creta", img: "https://cdn-s3.autocarindia.com/hyundai/Creta-Electric/500_5172.jpg?w=640&q=75" },
-  { name: "XUV 700", img: "https://asset.autocarindia.com/static/image-galleries/images/20260106_062810_99ca7cda.jpg?w=728&q=75" },
-  { name: "Harrier", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXOe3j2LEqZtPVlxBtvO0fAVNrTQUwMFfFoQ&s" },
-  { name: "Safari", img: "https://spn-sta.spinny.com/blog/20231103174155/new-Tata-Safari-1160x653.webp?compress=true&quality=80&w=1200&dpr=2.6" },
-  { name: "X3", img: "https://di-uploads-pod23.dealerinspire.com/bmwofowingsmills/uploads/2023/02/IMG_05281.jpg" }
-];
+    { name: "Dzire", img: "https://i0.wp.com/bestsellingcarsblog.com/wp-content/uploads/2025/06/Maruti-Suzuki-DZire-India-May-2025.jpg?resize=600%2C398" },
+    { name: "Swift", img: "https://www.autovista.in/assets/img/new_cars_colour_variants/swift-colour-solid-fire-red.jpg" },
+    { name: "Nexon", img: "https://images.autox.com/uploads/cars/2024/02/tata-nexon-500x261.jpg" },
+    { name: "Creta", img: "https://cdn-s3.autocarindia.com/hyundai/Creta-Electric/500_5172.jpg?w=640&q=75" },
+    { name: "XUV 700", img: "https://asset.autocarindia.com/static/image-galleries/images/20260106_062810_99ca7cda.jpg?w=728&q=75" },
+    { name: "Harrier", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXOe3j2LEqZtPVlxBtvO0fAVNrTQUwMFfFoQ&s" },
+    { name: "Safari", img: "https://spn-sta.spinny.com/blog/20231103174155/new-Tata-Safari-1160x653.webp?compress=true&quality=80&w=1200&dpr=2.6" },
+    { name: "X3", img: "https://di-uploads-pod23.dealerinspire.com/bmwofowingsmills/uploads/2023/02/IMG_05281.jpg" }
+  ];
 
+  // ✅ FULL DISTANCE MATRIX
   const distances = {
-    "Visakhapatnam-Vijayawada": 350,
-    "Visakhapatnam-Srikakulam": 120,
-    "Visakhapatnam-Araku": 110,
-    "Vijayawada-Tirupati": 430,
-    "Visakhapatnam-Hyderabad": 620
+    Visakhapatnam: {
+      Vizianagaram: 60,
+      Srikakulam: 120,
+      Araku: 110,
+      Vijayawada: 350,
+      Rajahmundry: 190,
+      Kakinada: 160,
+      Tirupati: 780,
+      Hyderabad: 620
+    },
+    Vizianagaram: { Visakhapatnam: 60, Srikakulam: 80, Araku: 130 },
+    Srikakulam: { Visakhapatnam: 120, Vizianagaram: 80 },
+    Araku: { Visakhapatnam: 110, Vizianagaram: 130 },
+    Vijayawada: { Visakhapatnam: 350, Rajahmundry: 160, Tirupati: 430, Hyderabad: 280 },
+    Rajahmundry: { Visakhapatnam: 190, Vijayawada: 160, Kakinada: 60 },
+    Kakinada: { Visakhapatnam: 160, Rajahmundry: 60 },
+    Tirupati: { Vijayawada: 430, Hyderabad: 560, Visakhapatnam: 780 },
+    Hyderabad: { Visakhapatnam: 620, Vijayawada: 280, Tirupati: 560 }
   };
 
   const formatDate = (date) => {
@@ -43,28 +72,25 @@ function App() {
   };
 
   const getFare = (selectedCar) => {
-    const key = `${from}-${to}`;
-    const reverseKey = `${to}-${from}`;
-    const distance = distances[key] || distances[reverseKey];
 
-    if (!distance) return 0;
+  if (!from || !to || from === to) return 0;
 
-    const priceMap = {
-      "Dzire": 10, "Swift": 10, "Nexon": 12,
-      "Creta": 13, "XUV 700": 15, "Harrier": 16,
-      "Safari": 17, "X3": 20
-    };
+  const distance =
+    distances[from]?.[to] ||
+    distances[to]?.[from] ||
+    100;
 
-    return distance * (priceMap[selectedCar] || 10);
+  const priceMap = {
+    Dzire: 10, Swift: 10, Nexon: 12,
+    Creta: 13, "XUV 700": 15,
+    Harrier: 16, Safari: 17, X3: 20
   };
 
-  // 🔐 AUTO LOGIN
-  useEffect(() => {
-    const user_id = localStorage.getItem("user_id");
-    if (user_id) setPage("home");
-  }, []);
+  return distance * (priceMap[selectedCar] || 10);
+};
 
-  // 📋 FETCH BOOKINGS
+  // ❌ AUTO LOGIN REMOVED
+
   const fetchBookings = async () => {
     const user_id = localStorage.getItem("user_id");
     if (!user_id) return;
@@ -78,42 +104,33 @@ function App() {
     if (page === "home") fetchBookings();
   }, [page]);
 
-  // 🔐 LOGIN
   const handleLogin = async () => {
     setLoading(true);
 
-    try {
-      const res = await fetch("https://car-booking-backend-dhaw.onrender.com/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password })
-      });
+    const res = await fetch("https://car-booking-backend-dhaw.onrender.com/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ email, password })
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) {
-        alert(data);
-        setLoading(false);
-        return;
-      }
-
-      localStorage.setItem("user_id", data.userId);
-      setPage("home");
-
-    } catch {
-      alert("Server slow");
+    if (!res.ok) {
+      alert(data);
+      setLoading(false);
+      return;
     }
 
+    localStorage.setItem("user_id", data.userId);
+    setPage("home");
     setLoading(false);
   };
 
-  // 🔓 LOGOUT
   const handleLogout = () => {
     localStorage.removeItem("user_id");
     setPage("login");
   };
 
-  // SIGNUP
   const handleSignup = async () => {
     await fetch("https://car-booking-backend-dhaw.onrender.com/signup", {
       method: "POST",
@@ -125,16 +142,49 @@ function App() {
     setPage("login");
   };
 
-  // BOOKING
   const handleBooking = async () => {
+
+  if (bookingLoading) return;
+
+  if (!from || !to) {
+    return setPopup({
+      show:true,
+      type:"error",
+      message:"Please select both From and To cities"
+    });
+  }
+
+  if (from === to) {
+    return setPopup({
+      show:true,
+      type:"error",
+      message:"Pickup and destination cannot be same"
+    });
+  }
+
+  if (!startDate || !endDate) {
+    return setPopup({
+      show:true,
+      type:"error",
+      message:"Please select booking dates"
+    });
+  }
+
+  const diff = (new Date(endDate) - new Date(startDate)) / (1000*60*60*24);
+  const days = Math.ceil(diff);
+
+  if (days <= 0) {
+    return setPopup({
+      show:true,
+      type:"error",
+      message:"End date must be after start date"
+    });
+  }
+
+  try {
+    setBookingLoading(true); // 🔥 START LOADING
+
     const user_id = localStorage.getItem("user_id");
-
-    if (!startDate || !endDate) return alert("Select dates");
-
-    const diff = (new Date(endDate) - new Date(startDate)) / (1000*60*60*24);
-    const days = Math.ceil(diff);
-
-    if (days <= 0) return alert("Invalid dates");
 
     const res = await fetch("https://car-booking-backend-dhaw.onrender.com/book", {
       method: "POST",
@@ -151,11 +201,34 @@ function App() {
       })
     });
 
-    if (!res.ok) return alert("Booking failed");
+    const text = await res.text();
 
-    alert("✅ Booking Confirmed!");
-    fetchBookings();
-  };
+    if (!res.ok) {
+      setPopup({
+        show:true,
+        type:"error",
+        message:text
+      });
+    } else {
+      setPopup({
+        show:true,
+        type:"success",
+        message:"Booking Confirmed 🚗"
+      });
+
+      fetchBookings();
+    }
+
+  } catch {
+    setPopup({
+      show:true,
+      type:"error",
+      message:"Server is slow. Try again."
+    });
+  }
+
+  setBookingLoading(false); // 🔥 STOP LOADING
+};
 
   // LOGIN UI
   if (page === "login") {
@@ -193,97 +266,153 @@ function App() {
 
   // HOME UI
   return (
-    <div style={{
-      background: "linear-gradient(to right,#0f172a,#1e293b)",
-      color: "white",
-      minHeight: "100vh",
-      padding: "20px"
-    }}>
+    <div style={{background:"#0f172a",color:"white",minHeight:"100vh",padding:"20px"}}>
 
-      {/* HEADER WITH LOGOUT */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{display:"flex",justifyContent:"space-between"}}>
         <h1>Vargo 🚗</h1>
         <button
-          onClick={handleLogout}
-          style={{width:"auto",padding:"8px 15px",background:"#dc2626"}}
-        >
-          Logout
-        </button>
+  onClick={handleLogout}
+  style={{
+    width:"auto",
+    padding:"6px 12px",
+    fontSize:"13px",
+    background:"#dc2626"
+  }}
+>
+  Logout
+</button>
       </div>
 
-      <div style={{ maxWidth:"600px", margin:"auto" }}>
-        <h2>Select Your Ride</h2>
+      <h2>Select Ride</h2>
 
-        <div style={{
-  display:"grid",
-  gridTemplateColumns:"repeat(auto-fit, minmax(240px,1fr))",
-  gap:"20px",
-  marginTop:"20px"
-}}>
-  {cars.map((c, index) => (
-    <div
-      key={index}
-      onClick={()=>setCar(c.name)}
-      style={{
-        borderRadius:"20px",
-        overflow:"hidden",
-        cursor:"pointer",
-        background:"linear-gradient(145deg,#1f2937,#111827)",
-        border: car===c.name ? "2px solid #3b82f6" : "1px solid #374151",
-        transform: car===c.name ? "scale(1.05)" : "scale(1)",
-        transition:"all 0.3s ease",
-        boxShadow:"0 15px 35px rgba(0,0,0,0.5)"
-      }}
-    >
-
-      {/* IMAGE */}
-      <img 
-  src={c.img}
-  alt={c.name}
-  style={{width:"100%",height:"120px",objectFit:"cover"}} 
-/>
-
-      {/* DETAILS */}
-      <div style={{padding:"15px"}}>
-        <h3 style={{margin:"0 0 5px"}}>{c.name}</h3>
-        <p style={{margin:0,color:"#9ca3af"}}>
-          ₹{getFare(c.name)}
-        </p>
-      </div>
-
-    </div>
-  ))}
-</div>
-
-        <h3>Total: ₹{getFare(car)}</h3>
-
-        <select onChange={e=>setFrom(e.target.value)}>
-          {cities.map(c=><option key={c}>{c}</option>)}
-        </select>
-
-        <select onChange={e=>setTo(e.target.value)}>
-          {cities.map(c=><option key={c}>{c}</option>)}
-        </select>
-
-        <input type="date" onChange={e=>setStartDate(e.target.value)} />
-        <input type="date" onChange={e=>setEndDate(e.target.value)} />
-
-        <button onClick={handleBooking}>Book Ride 🚀</button>
-      </div>
-
-      {/* BOOKINGS */}
-      <div style={{ maxWidth:"600px", margin:"30px auto" }}>
-        <h3>Your Bookings</h3>
-
-        {bookings.map((b, i) => (
-          <div key={i} style={{background:"#1f2937",padding:"15px",margin:"10px 0",borderRadius:"10px"}}>
-            <p>📍 {b.from_city} → {b.to_city}</p>
-            <p>📅 {formatDate(b.startDate)} → {formatDate(b.endDate)}</p>
-            <p>🚗 {b.car}</p>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:"20px"}}>
+        {cars.map((c,i)=>(
+          <div key={i} onClick={()=>setCar(c.name)} style={{
+            background:"#1f2937",
+            borderRadius:"15px",
+            overflow:"hidden",
+            cursor:"pointer"
+          }}>
+            <img src={c.img} alt={c.name} style={{width:"100%",height:"140px",objectFit:"cover"}} />
+            <div style={{padding:"10px"}}>
+              <h3>{c.name}</h3>
+              <p>₹{getFare(c.name)}</p>
+            </div>
           </div>
         ))}
       </div>
 
+      <h3>Total: ₹{getFare(car)}</h3>
+
+      {/* SELECT WITH PLACEHOLDER */}
+      <select value={from} onChange={e=>setFrom(e.target.value)}>
+        <option value="">Select From</option>
+        {cities.map(c=><option key={c}>{c}</option>)}
+      </select>
+
+      <select value={to} onChange={e=>setTo(e.target.value)}>
+        <option value="">Select To</option>
+        {cities.map(c=><option key={c}>{c}</option>)}
+      </select>
+
+      <input type="date" onChange={e=>setStartDate(e.target.value)} />
+      <input type="date" onChange={e=>setEndDate(e.target.value)} />
+
+      <button
+  onClick={handleBooking}
+  disabled={bookingLoading}
+  style={{
+    opacity: bookingLoading ? 0.6 : 1,
+    cursor: bookingLoading ? "not-allowed" : "pointer",
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center",
+    gap:"8px"
+  }}
+>
+  {bookingLoading ? (
+    <>
+      <div className="spinner"></div>
+      Booking...
+    </>
+  ) : "Book Ride 🚀"}
+</button>
+
+      {/* BOOKINGS */}
+      <h3>Your Bookings</h3>
+      {bookings.map((b,i)=>(
+        <div key={i} style={{background:"#1f2937",margin:"10px",padding:"10px"}}>
+          <p>{b.from_city} → {b.to_city}</p>
+          <p>{formatDate(b.startDate)} → {formatDate(b.endDate)}</p>
+          <p>{b.car}</p>
+
+          {popup.show && (
+  <div style={{
+    position:"fixed",
+    top:0,
+    left:0,
+    width:"100%",
+    height:"100%",
+    background:"rgba(0,0,0,0.7)",
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center",
+    zIndex:999
+  }}>
+
+    <div style={{
+      background:"#111827",
+      padding:"30px",
+      borderRadius:"20px",
+      textAlign:"center",
+      minWidth:"320px",
+      animation:"popIn 0.35s ease",
+      boxShadow:"0 20px 50px rgba(0,0,0,0.7)"
+    }}>
+
+      {/* ICON */}
+      <div style={{
+        fontSize:"50px",
+        marginBottom:"10px",
+        animation:"bounce 0.6s"
+      }}>
+        {popup.type === "success" ? "✅" : "❌"}
+      </div>
+
+      {/* TITLE */}
+      <h2 style={{
+        color: popup.type==="success" ? "#22c55e" : "#ef4444",
+        marginBottom:"10px"
+      }}>
+        {popup.type==="success" ? "Success" : "Failed"}
+      </h2>
+
+      {/* MESSAGE */}
+      <p style={{color:"#d1d5db", marginBottom:"20px"}}>
+        {popup.message}
+      </p>
+
+      {/* BUTTON */}
+      <button
+        onClick={()=>setPopup({...popup, show:false})}
+        style={{
+          background: popup.type==="success" ? "#22c55e" : "#ef4444",
+          border:"none",
+          padding:"10px 20px",
+          borderRadius:"10px",
+          cursor:"pointer",
+          fontWeight:"bold"
+        }}
+      >
+        OK
+      </button>
+
+    </div>
+  </div>
+)}
+        </div>
+      ))}
+     
     </div>
   );
 }
