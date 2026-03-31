@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import logo from "./logo.png";
 
 function App() {
   
@@ -101,15 +102,15 @@ function App() {
     `https://car-booking-backend-dhaw.onrender.com/profile/${user_id}`
   );
 
-  let data;
+let data;
+let text;
 
-try {
+const contentType = res.headers.get("content-type");
+
+if (contentType && contentType.includes("application/json")) {
   data = await res.json();
-} catch {
-  const text = await res.text();
-  alert(text);
-  setLoading(false);
-  return;
+} else {
+  text = await res.text();
 }
 
   setName(data.name);
@@ -149,34 +150,53 @@ try {
       body: JSON.stringify({ email, password })
     });
 
-    let data;
+    const text = await res.text();
 
-    try {
-      data = await res.json();
-    } catch {
-      const text = await res.text();
-      alert(text);
-      setLoading(false);
-      return;
-    }
-
+    // ❌ ERROR CASE
     if (!res.ok) {
-      alert(data?.message || data || "Login failed");
       setLoading(false);
-      return;
+
+      return setPopup({
+        show:true,
+        type:"error",
+        message: text
+      });
     }
 
+    // ✅ SUCCESS CASE (handle safely)
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // fallback if backend sends plain text
+      setLoading(false);
+
+      return setPopup({
+        show:true,
+        type:"error",
+        message:"Invalid server response"
+      });
+    }
+
+    // ✅ SAVE DATA
     localStorage.setItem("user_id", data.userId);
     localStorage.setItem("name", data.name);
     setName(data.name);
 
     setPage("home");
+    setLoading(false);
 
-  } catch {
-  alert("Server error");
-  setLoading(false); 
-  return;
-}
+  } catch (err) {
+    console.log(err);
+
+    setPopup({
+      show:true,
+      type:"error",
+      message:"Server connection failed"
+    });
+
+    setLoading(false);
+  }
 };
 
   const handleLogout = () => {
@@ -380,57 +400,194 @@ const handleBooking = async () => {
   setBookingLoading(false); // 🔥 STOP LOADING
 };
 
-  if (page === "landing") {
+ if (page === "landing") {
   return (
     <div style={{
-      height:"100vh",
-      background:"linear-gradient(135deg,#0f172a,#1e293b)",
+      minHeight:"100vh",
+      background:"linear-gradient(120deg,#020617,#0f172a,#1e40af)",
       color:"white",
-      display:"flex",
-      flexDirection:"column",
-      justifyContent:"center",
-      alignItems:"center",
-      textAlign:"center",
-      animation:"popIn 0.5s ease"
+      padding:"20px",
+      overflow:"hidden"
     }}>
-      <h1 style={{fontSize:"42px"}}>🚗 Vargo</h1>
 
-      <p style={{maxWidth:"400px"}}>
-        Book rides instantly.
-      </p>
+     <img 
+  src={logo} 
+  alt="Vargoo" 
+  style={{width:"350px", margin:"1px auto", display:"block"}}
+/>
 
-      <div style={{marginTop:"20px"}}>
-        <button onClick={()=>setPage("login")}>Login</button>
-        <button onClick={()=>setPage("signup")} style={{marginLeft:"10px"}}>
-          Signup
+      {/* NAVBAR */}
+      <div style={{
+        display:"flex",
+        justifyContent:"space-between",
+        alignItems:"center"
+      }}>
+        <h2 style={{letterSpacing:"1px"}}></h2>
+
+              </div>
+
+      {/* HERO */}
+      <div style={{
+        textAlign:"center",
+        marginTop:"80px",
+        animation:"fadeUp 1s ease"
+      }}>
+        <h1 style={{
+          fontSize:"56px",
+          fontWeight:"bold",
+          background:"linear-gradient(90deg,#38bdf8,#6366f1)",
+          WebkitBackgroundClip:"text",
+          color:"transparent"
+        }}>
+          Smart Travel Starts Here
+        </h1>
+
+        <p style={{
+          marginTop:"15px",
+          color:"#cbd5e1",
+          maxWidth:"600px",
+          marginInline:"auto"
+        }}>
+          Experience seamless ride booking with Vargoo.
+          Fast, affordable and reliable journeys across cities.
+        </p>
+
+               
+      </div>
+
+      {/* FEATURES */}
+      <div style={{
+        display:"grid",
+        gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",
+        gap:"20px",
+        marginTop:"80px"
+      }}>
+        {[
+          {title:"⚡ Instant Booking",desc:"Book rides in seconds"},
+          {title:"💰 Best Pricing",desc:"Affordable fares always"},
+          {title:"🚗 Multiple Cars",desc:"Choose your ride"},
+          {title:"📍 Smart Routes",desc:"Optimized travel paths"}
+        ].map((f,i)=>(
+          <div key={i} style={{
+            background:"rgba(255,255,255,0.05)",
+            backdropFilter:"blur(10px)",
+            borderRadius:"20px",
+            padding:"20px",
+            textAlign:"center",
+            transition:"0.3s",
+            animation:`fadeUp ${0.6 + i*0.2}s`
+          }}>
+            <h3>{f.title}</h3>
+            <p style={{fontSize:"13px",color:"#cbd5e1"}}>{f.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* CAR SHOWCASE */}
+      <div style={{
+        marginTop:"80px",
+        display:"flex",
+        gap:"20px",
+        overflowX:"auto"
+      }}>
+        {cars.map((c,i)=>(
+          <div key={i} style={{
+            minWidth:"220px",
+            borderRadius:"15px",
+            overflow:"hidden",
+            background:"#1f2937",
+            animation:`slideIn ${0.5 + i*0.1}s`
+          }}>
+            <img src={c.img} alt={c.name}
+              style={{width:"100%",height:"140px",objectFit:"cover"}}
+            />
+            <h4 style={{textAlign:"center",padding:"10px"}}>{c.name}</h4>
+          </div>
+        ))}
+      </div>
+
+      {/* FOOTER CTA */}
+      <div style={{textAlign:"center",marginTop:"80px"}}>
+        <h2>Ready to ride?</h2>
+
+        <button
+          onClick={()=>setPage("login")}
+          style={{
+            marginTop:"15px",
+            padding:"15px 30px",
+            borderRadius:"12px",
+            background:"#22c55e",
+            border:"none"
+          }}
+        >
+          Book Now 🚗
         </button>
       </div>
+
     </div>
   );
 }
 
   // LOGIN UI
+
   if (page === "login") {
-    return (
-      <div style={{ textAlign:"center", marginTop:"120px" }}>
-        <h2>Login 🚗</h2>
+  return (
+    <div style={{ textAlign:"center", marginTop:"120px" }}>
+    
+    <img src={logo} alt="logo" style={{width:"180px"}} />
 
-        <input 
-         placeholder="Email / UserID" 
-         onChange={e=>setEmail(e.target.value)}
-         onKeyDown={(e)=> e.key==="Enter" && handleLogin()}
-     /><br/><br/>
-        
-        <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} onKeyDown = {(e)=> e.key === "Enter" && handleLogin()}/><br/><br/>
-
-        <button onClick={handleLogin}>
-          {loading ? "Loading..." : "Login"}
+      {/* 🔥 TOP BAR */}
+      <div style={{
+        display:"flex",
+        justifyContent:"center",
+        gap:"20px",
+        marginBottom:"20px"
+      }}>
+        <button onClick={()=>setPage("landing")}>
+          🏠 Home
         </button>
 
-        <p onClick={()=>setPage("signup")}>Signup</p>
+        <button onClick={()=>setPage("signup")}>
+          Signup
+        </button>
       </div>
-    );
-  }
+
+      <h2>Login 🚗</h2>
+
+      <input 
+        placeholder="Email / UserID" 
+        onChange={e=>setEmail(e.target.value)}
+        onKeyDown={(e)=> e.key==="Enter" && handleLogin()}
+      /><br/><br/>
+
+      <input 
+        type="password" 
+        placeholder="Password" 
+        onChange={e=>setPassword(e.target.value)}
+        onKeyDown={(e)=> e.key==="Enter" && handleLogin()}
+      /><br/><br/>
+
+     <button 
+  onClick={handleLogin}
+  disabled={loading}
+  style={{
+    width:"220px",
+    padding:"12px",
+    borderRadius:"10px",
+    background:"#2563eb",
+    color:"white",
+    fontSize:"16px",
+    border:"none",
+    cursor:"pointer",
+    marginTop:"10px",
+    fontWeight:"bold",  }}
+>
+  {loading ? "Loading..." : "Login"}
+</button>
+
+    </div>
+  );
+}
 
   // SIGNUP UI
   if (page === "signup") {
@@ -463,6 +620,11 @@ const handleBooking = async () => {
 
   return (
     <div style={{padding:"20px",color:"white"}}>
+    <img 
+  src={logo} 
+  alt="logo" 
+  style={{width:"120px", marginBottom:"10px"}} 
+/>
 
       <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
       <button onClick={()=>setPage("home")}>⬅ Back</button>
@@ -501,6 +663,15 @@ if (page === "bookings") {
 
   return (
     <div style={{padding:"20px",color:"white"}}>
+   
+   <img 
+  src={logo} 
+  alt="logo" 
+  style={{
+    width:"180px",
+    objectFit:"contain"
+  }} 
+/>
 
       <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
       <button onClick={()=>setPage("home")}>⬅ Back</button>
@@ -530,33 +701,53 @@ if (page === "bookings") {
 
   // HOME UI
   return (
-    <div style={{background:"#0f172a",color:"white",minHeight:"100vh",padding:"20px"}}>
+    <div style={{background:"linear-gradient(120deg,#0b3c5d,#0f172a,#1e3a8a)"}}>
 
-      <div style={{display:"flex",justifyContent:"space-between"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-  <h1>Vargoo 🚗</h1>
+      <div style={{
+  display:"flex",
+  justifyContent:"space-between",
+  alignItems:"center",
+  marginBottom:"20px"
+}}>
 
-  <div>
-    <button onClick={()=>setPage("home")} style={{marginRight:"10px"}}>Home</button>
-    <button onClick={()=>setPage("profile")} style={{marginRight:"10px"}}>Profile</button>
-    <button onClick={()=>setPage("bookings")} style={{marginRight:"10px"}}>Bookings</button>
-    <button onClick={handleLogout} style={{padding:"5px 10px"}}>Logout</button>
+  {/* LEFT: LOGO */}
+  <img 
+    src={logo} 
+    alt="logo" 
+    style={{width:"219px"}} 
+  />
+
+  {/* RIGHT: MENU */}
+  <div style={{
+    display:"flex",
+    gap:"12px"
+  }}>
+    <button onClick={()=>setPage("landing")}>Home</button>
+    <button onClick={()=>setPage("profile")}>Profile</button>
+    <button onClick={()=>setPage("bookings")}>Bookings</button>
+    <button onClick={handleLogout} style={{background:"#dc2626"}}>
+      Logout
+    </button>
   </div>
-</div>
-        <button
-  onClick={handleLogout}
-  style={{
-    width:"auto",
-    padding:"6px 12px",
-    fontSize:"13px",
-    background:"#dc2626"
-  }}
->
-  Logout
-</button>
-      </div>
 
-      <h2>Select Ride</h2>
+</div>
+
+     {editBooking && (
+  <div style={{
+    background:"#f59e0b",
+    padding:"10px",
+    borderRadius:"10px",
+    marginBottom:"10px",
+    textAlign:"center",
+    fontWeight:"bold"
+  }}>
+    ✏️ Editing Booking Mode
+  </div>
+)}
+
+     <h2>
+  {editBooking ? "✏️ Edit Booking" : "Select Ride"}
+</h2>
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:"20px"}}>
         {cars.map((c,i)=>(
@@ -572,7 +763,7 @@ if (page === "bookings") {
     transition:"0.3s"
   }}
 >
-            <img src={c.img} alt={c.name} style={{width:"100%",height:"140px",objectFit:"cover"}} />
+            <img src={c.img} alt={c.name} style={{width:"100%",height:"180px",objectFit:"cover"}} />
             <div style={{padding:"10px"}}>
               <h3>{c.name}</h3>
               <p>₹{getFare(c.name)}</p>

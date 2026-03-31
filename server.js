@@ -88,7 +88,7 @@ app.post("/cancel-booking", (req,res)=>{
 
 app.post("/update-booking", (req, res) => {
 
-  console.log("🔥 UPDATE BOOKING HIT");
+  
 
   const { booking_id, car, from, to, startDate, endDate } = req.body;
 
