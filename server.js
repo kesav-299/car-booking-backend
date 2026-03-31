@@ -29,6 +29,39 @@ const db = mysql.createPool({
 });
 
 // ==============================
+// PROFILE APIs
+// ==============================
+
+app.post("/update-profile", (req, res) => {
+
+  const { user_id, name, email, age, gender, phone } = req.body;
+
+  if (!user_id) {
+    return res.status(400).send("Missing user id");
+  }
+
+  const sql = `
+    UPDATE users 
+    SET name=?, email=?, age=?, gender=?, phone=? 
+    WHERE id=?
+  `;
+
+  db.query(
+    sql,
+    [name, email, age, gender, phone, user_id],
+    (err) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send("Error updating profile");
+      }
+
+      res.send("Profile updated successfully");
+    }
+  );
+});
+
+
+// ==============================
 // 🚗 BOOKING APIs
 // ==============================
 
@@ -116,69 +149,98 @@ app.get("/bookings/:user_id", (req, res) => {
 // 🔐 AUTH APIs
 // ==============================
 
-// ✅ SIGNUP
+// ==============================
+// ✅ SIGNUP (UPDATED)
+// ==============================
 app.post("/signup", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, age, gender, phone } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).send("Missing fields");
+  // 🔴 VALIDATION
+  if (!name || !email || !password || !age || !gender || !phone) {
+    return res.status(400).send("All fields are required");
+  }
+
+  if (age < 18) {
+    return res.status(400).send("You must be 18+ to register");
   }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const sql = `
+      INSERT INTO users (name, email, password, age, gender, phone)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
     db.query(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, hashedPassword],
+      sql,
+      [name, email, hashedPassword, age, gender, phone],
       (err) => {
         if (err) {
-          return res.status(400).send("User already exists");
+          console.log(err);
+          return res.status(400).send("User already exists or DB error");
         }
+
         res.send("Signup successful");
       }
     );
 
-  } catch {
+  } catch (err) {
+    console.log(err);
     res.status(500).send("Server error");
   }
 });
 
-// ✅ LOGIN (FASTER + CLEAN)
+
+// ==============================
+// ✅ LOGIN (UPDATED)
+// ==============================
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  db.query(
-    "SELECT * FROM users WHERE email = ?",
-    [email],
-    async (err, result) => {
+  if (!email || !password) {
+    return res.status(400).send("Enter email and password");
+  }
 
-      if (err) return res.status(500).send("Server error");
+  const sql = "SELECT * FROM users WHERE email = ?";
 
-      if (result.length === 0) {
-        return res.status(400).json("User not found");
-      }
+  db.query(sql, [email], async (err, result) => {
 
-      const user = result[0];
-
-      const match = await bcrypt.compare(password, user.password);
-
-      if (!match) {
-        return res.status(400).json("Wrong password");
-      }
-
-      const token = jwt.sign(
-        { id: user.id },
-        process.env.JWT_SECRET || "secretkey",
-        { expiresIn: "1h" }
-      );
-
-      res.json({
-        message: "Login successful",
-        token,
-        userId: user.id
-      });
+    if (err) {
+      console.log(err);
+      return res.status(500).send("Server error");
     }
-  );
+
+    if (result.length === 0) {
+      return res.status(400).send("User not found");
+    }
+
+    const user = result[0];
+
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      return res.status(400).send("Wrong password");
+    }
+
+    const token = jwt.sign(
+      { id: user.id },
+      process.env.JWT_SECRET || "secretkey",
+      { expiresIn: "1h" }
+    );
+
+    // ✅ IMPORTANT: SEND NAME ALSO
+    res.json({
+      message: "Login successful",
+      token,
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      age: user.age,
+      gender: user.gender,
+      phone: user.phone
+    });
+  });
 });
 
 // ==============================

@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
 
 function App() {
-
+  
   const [bookingLoading, setBookingLoading] = useState(false);
-
+  
+  const [popupShown, setPopupShown] = useState(false);
   const [popup, setPopup] = useState({ show:false, type:"", message:"" });
-  const [page, setPage] = useState("login");
+  const [page, setPage] = useState("landing");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [car, setCar] = useState("Swift");
@@ -132,15 +136,68 @@ function App() {
   };
 
   const handleSignup = async () => {
+
+    if (!name || !email || !password || !age || !gender || !phone) {
+    return alert("Please fill all fields");
+  }
+
+  if (age < 18) {
+    return alert("You must be 18+ to register");
+  }
+
     await fetch("https://car-booking-backend-dhaw.onrender.com/signup", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ name, email, password })
+      body: JSON.stringify({ name, email, password, age, gender, phone })
     });
 
     alert("Signup successful");
     setPage("login");
   };
+  
+  const handleUpdateProfile = async () => {
+
+  const user_id = localStorage.getItem("user_id");
+
+  if (!name || !email || !age || !gender || !phone) {
+    return alert("Please fill all fields");
+  }
+
+  const res = await fetch("https://car-booking-backend-dhaw.onrender.com/update-profile", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      user_id,
+      name,
+      email,
+      age,
+      gender,
+      phone
+    })
+  });
+
+  const text = await res.text();
+
+  alert(text);
+};
+ 
+  const handleDeleteAccount = async () => {
+
+  const user_id = localStorage.getItem("user_id");
+
+  if (!window.confirm("Are you sure?")) return;
+
+  await fetch("https://car-booking-backend-dhaw.onrender.com/delete-account", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ user_id })
+  });
+
+  alert("Account deleted");
+
+  localStorage.clear();
+  setPage("landing");
+};
 
   const handleBooking = async () => {
 
@@ -204,20 +261,29 @@ function App() {
     const text = await res.text();
 
     if (!res.ok) {
-      setPopup({
-        show:true,
-        type:"error",
-        message:text
-      });
-    } else {
-      setPopup({
-        show:true,
-        type:"success",
-        message:"Booking Confirmed 🚗"
-      });
+  setPopup({
+    show:true,
+    type:"error",
+    message:text
+  });
+} else {
 
-      fetchBookings();
-    }
+  if (!popupShown) {   // 🔥 prevent duplicate
+    setPopup({
+      show:true,
+      type:"success",
+      message:"Booking Confirmed 🚗"
+    });
+
+    setPopupShown(true);
+
+    setTimeout(() => {
+      setPopupShown(false); // reset for next booking
+    }, 2000);
+  }
+
+  fetchBookings();
+}
 
   } catch {
     setPopup({
@@ -230,14 +296,48 @@ function App() {
   setBookingLoading(false); // 🔥 STOP LOADING
 };
 
+  if (page === "landing") {
+  return (
+    <div style={{
+      height:"100vh",
+      background:"linear-gradient(135deg,#0f172a,#1e293b)",
+      color:"white",
+      display:"flex",
+      flexDirection:"column",
+      justifyContent:"center",
+      alignItems:"center",
+      textAlign:"center",
+      animation:"popIn 0.5s ease"
+    }}>
+      <h1 style={{fontSize:"42px"}}>🚗 Vargo</h1>
+
+      <p style={{maxWidth:"400px"}}>
+        Book rides instantly like Uber & Ola.
+      </p>
+
+      <div style={{marginTop:"20px"}}>
+        <button onClick={()=>setPage("login")}>Login</button>
+        <button onClick={()=>setPage("signup")} style={{marginLeft:"10px"}}>
+          Signup
+        </button>
+      </div>
+    </div>
+  );
+}
+
   // LOGIN UI
   if (page === "login") {
     return (
       <div style={{ textAlign:"center", marginTop:"120px" }}>
         <h2>Login 🚗</h2>
 
-        <input placeholder="Email" onChange={e=>setEmail(e.target.value)} /><br/><br/>
-        <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} /><br/><br/>
+        <input 
+         placeholder="Email / UserID" 
+         onChange={e=>setEmail(e.target.value)}
+         onKeyDown={(e)=> e.key==="Enter" && handleLogin()}
+     /><br/><br/>
+        
+        <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} onKeyDown = {(e)=> e.key == "Enter" && handleLogin()}/><br/><br/>
 
         <button onClick={handleLogin}>
           {loading ? "Loading..." : "Login"}
@@ -255,7 +355,17 @@ function App() {
         <h2>Signup 🚗</h2>
 
         <input placeholder="Name" onChange={e=>setName(e.target.value)} /><br/><br/>
-        <input placeholder="Email" onChange={e=>setEmail(e.target.value)} /><br/><br/>
+        <input placeholder="Email / UserID" onChange={e=>setEmail(e.target.value)} /><br/><br/>
+<input placeholder="Phone" onChange={e=>setPhone(e.target.value)} /><br/><br/>
+<input type="number" placeholder="Age" onChange={e=>setAge(e.target.value)} /><br/><br/>
+
+<select value={gender} onChange={e=>setGender(e.target.value)}>
+  <option value="">Select Gender</option>
+  <option value="Male">Male</option>
+  <option value="Female">Female</option>
+  <option value="Others">Others</option>
+</select>
+
         <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} /><br/><br/>
 
         <button onClick={handleSignup}>Signup</button>
@@ -264,12 +374,56 @@ function App() {
     );
   }
 
+  // PROFILE UI
+  if (page === "profile") {
+
+  return (
+    <div style={{padding:"20px",color:"white"}}>
+
+      <h2>👤 Profile</h2>
+
+      <input placeholder="Name" value={name} onChange={e=>setName(e.target.value)} />
+      <input placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
+      <input placeholder="Phone" value={phone} onChange={e=>setPhone(e.target.value)} />
+      <input type="number" placeholder="Age" value={age} onChange={e=>setAge(e.target.value)} />
+
+      <select value={gender} onChange={e=>setGender(e.target.value)}>
+        <option value="">Select Gender</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Others</option>
+      </select>
+
+      <br/><br/>
+
+      <button onClick={handleUpdateProfile}>Update Profile</button>
+
+      <button
+        onClick={handleDeleteAccount}
+        style={{background:"red",marginTop:"10px"}}
+      >
+        Delete Account
+      </button>
+
+    </div>
+  );
+}
+
   // HOME UI
   return (
     <div style={{background:"#0f172a",color:"white",minHeight:"100vh",padding:"20px"}}>
 
       <div style={{display:"flex",justifyContent:"space-between"}}>
-        <h1>Vargo 🚗</h1>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+  <h1>Vargoo 🚗</h1>
+
+  <div>
+    <button onClick={()=>setPage("home")} style={{marginRight:"10px"}}>Home</button>
+    <button onClick={()=>setPage("profile")} style={{marginRight:"10px"}}>Profile</button>
+    <button onClick={()=>setPage("bookings")} style={{marginRight:"10px"}}>Bookings</button>
+    <button onClick={handleLogout} style={{padding:"5px 10px"}}>Logout</button>
+  </div>
+</div>
         <button
   onClick={handleLogout}
   style={{
@@ -346,7 +500,10 @@ function App() {
           <p>{formatDate(b.startDate)} → {formatDate(b.endDate)}</p>
           <p>{b.car}</p>
 
-          {popup.show && (
+          
+        </div>
+      ))}
+      {popup.show && (
   <div style={{
     position:"fixed",
     top:0,
@@ -410,8 +567,6 @@ function App() {
     </div>
   </div>
 )}
-        </div>
-      ))}
      
     </div>
   );
