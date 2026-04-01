@@ -569,17 +569,17 @@ const handleBooking = async () => {
  if (page === "landing") {
   return (
     <div style={{
-      minHeight:"50vh",
+      minHeight:"100vh",
       background:"linear-gradient(120deg,#020617,#0f172a,#1e40af)",
       color:"white",
-      padding:"25px",
+      padding:"20px",
       overflow:"hidden"
     }}>
 
      <img 
   src={logo} 
   alt="Vargoo" 
-  style={{width:"350px", margin:"0px auto", display:"block"}}
+  style={{width:"500px", margin:"0px auto", display:"block"}}
 />
 
       {/* NAVBAR */}
@@ -595,7 +595,7 @@ const handleBooking = async () => {
       {/* HERO */}
       <div style={{
         textAlign:"center",
-        marginTop:"40px",
+        marginTop:"20px",
         animation:"fadeUp 1s ease"
       }}>
         <h1 style={{
@@ -623,11 +623,10 @@ const handleBooking = async () => {
 
       {/* FEATURES */}
       <div style={{
-        display:"grid",
-        gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",
-        gap:"20px",
-        marginTop:"80px"
-      }}>
+  display:"grid",
+  gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",
+  gap:"20px"
+}}>
         {[
           {title:"⚡ Instant Booking",desc:"Book rides in seconds"},
           {title:"💰 Best Pricing",desc:"Affordable fares always"},
@@ -957,6 +956,9 @@ if (page === "bookings") {
 }
 
   // HOME UI
+
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <div style={{background:"linear-gradient(120deg,#0b3c5d,#0f172a,#1e3a8a)"}}>
 
@@ -1042,9 +1044,50 @@ if (page === "bookings") {
         {cities.map(c=><option key={c}>{c}</option>)}
       </select>
 
-      <input type="date" onChange={e=>setStartDate(e.target.value)} />
-      <input type="date" onChange={e=>setEndDate(e.target.value)} />
+      
 
+<div style={{
+  display:"flex",
+  flexDirection:"column",
+  gap:"1px",
+  marginTop:"1px"
+}}>
+
+  <label style={{color:"white"}}>Start Date</label>
+  <input
+    type="date"
+    min={today}
+    value={startDate}
+    onChange={e=>setStartDate(e.target.value)}
+    onMouseDown={(e) => e.target.focus()}
+    style={{
+      padding:"12px",
+      borderRadius:"8px",
+      width:"100%",
+      background:"#1f2937",
+      color:"white",
+      colorScheme:"dark"
+    }}
+  />
+
+  <label style={{color:"white"}}>End Date</label>
+  <input
+    type="date"
+    min={startDate || today}
+    value={endDate}
+    onChange={e=>setEndDate(e.target.value)}
+    onMouseDown={(e) => e.target.focus()}
+    style={{
+      padding:"12px",
+      borderRadius:"8px",
+      width:"100%",
+      background:"#1f2937",
+      color:"white",
+      colorScheme:"dark"
+    }}
+  />
+
+</div>
       <button
   onClick={handleBooking}
   disabled={bookingLoading}
