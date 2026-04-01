@@ -162,24 +162,40 @@ app.post("/book", (req, res) => {
       }
 
       // ✅ INSERT
-      const insertSql = `
-        INSERT INTO booking 
-        (name, car, days, user_id, from_city, to_city, startDate, endDate)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `;
+      // 🔥 FETCH NAME FROM USERS TABLE
+db.query(
+  "SELECT name FROM users WHERE id = ?",
+  [user_id],
+  (err, userResult) => {
 
-      db.query(
-        insertSql,
-        [name, car, days, user_id, from, to, startDate, endDate],
-        (err) => {
-          if (err) {
-            console.log(err);
-            return res.status(500).send("Error inserting booking");
-          }
+    if (err) {
+      console.log(err);
+      return res.status(500).send("Error fetching user");
+    }
 
-          res.send("Booking successful");
+    const name = userResult[0]?.name;
+
+    // ✅ INSERT
+    const insertSql = `
+      INSERT INTO booking 
+      (name, car, days, user_id, from_city, to_city, startDate, endDate)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+      insertSql,
+      [name, car, days, user_id, from, to, startDate, endDate],
+      (err) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send("Error inserting booking");
         }
-      );
+
+        res.send("Booking successful");
+      }
+    );
+  }
+);
     }
   );
 });
