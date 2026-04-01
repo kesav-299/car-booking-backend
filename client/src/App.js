@@ -236,9 +236,21 @@ if (!distance) return 0;
     if (page === "home") fetchBookings();
     if (page === "profile") fetchProfile();
   }, [page]);
+
+ useEffect(() => {
+    const user_id =
+      localStorage.getItem("user_id") ||
+      sessionStorage.getItem("user_id");
+
+    if (user_id) {
+      setPage("home");
+    }
+  }, []);
   
   useEffect(() => {
   if (!popup.show) return;
+  
+  
 
   const timer = setTimeout(() => {
     setPopup({ show:false, type:"", message:"" });
@@ -754,41 +766,66 @@ const handleBooking = async () => {
 
           {/* 🔥 UPDATED BUTTON HERE */}
           <button 
-            onClick={handleLogin}
-            disabled={loading}
-            style={{
-              width:"100%",
-              padding:"14px",
-              borderRadius:"10px",
-              background: loading ? "#1e40af" : "#2563eb",
-              color:"white",
-              fontSize:"16px",
-              border:"none",
-              cursor: loading ? "not-allowed" : "pointer",
-              display:"flex",
-              justifyContent:"center",
-              alignItems:"center",
-              gap:"8px"
-            }}
-          >
-            {loading ? (
-              <>
-                <div className="spinner"></div>
-                Logging in...
-              </>
-            ) : "Login"}
-          </button>
+  onClick={handleLogin}
+  disabled={loading}
+  style={{
+    width:"100%",
+    padding:"14px",
+    borderRadius:"10px",
+    background: loading ? "#1e40af" : "#2563eb",
+    color:"white",
+    fontSize:"16px",
+    border:"none",
+    cursor: loading ? "not-allowed" : "pointer",
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center",
+    gap:"8px"
+  }}
+>
+  {loading ? (
+    <>
+      <div className="spinner"></div>
+      Logging in...
+    </>
+  ) : "Login"}
+</button>
 
-          {/* ✅ success message */}
-          {loginSuccess && (
-            <p style={{color:"#22c55e",marginTop:"10px"}}>
-              {loginSuccess}
-            </p>
-          )}
+{/* ✅ success message */}
+{loginSuccess && (
+  <p style={{color:"#22c55e",marginTop:"10px"}}>
+    {loginSuccess}
+  </p>
+)}
 
+{/* 🔥 ADD THIS BLOCK HERE */}
+<div style={{marginTop:"15px"}}>
+
+  <p 
+    onClick={()=>setPage("signup")}
+    style={{
+      color:"#38bdf8",
+      cursor:"pointer",
+      marginBottom:"8px"
+    }}
+  >
+    New user? Signup
+  </p>
+
+  <p 
+    onClick={()=>setPage("landing")}
+    style={{
+      color:"#cbd5e1",
+      cursor:"pointer",
+      fontSize:"14px"
+    }}
+  >
+    ⬅ Back to Home
+  </p>
+</div>  
         </div>
+   
       </div>
-
       <PopupComponent />
     </>
   );
