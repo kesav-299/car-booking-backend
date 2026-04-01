@@ -168,28 +168,56 @@ const PopupComponent = () => (
 
   const getFare = (selectedCar) => {
 
-  if (!from || !to || from === to) return 0;
+  if (!from || !to || from === to || !startDate || !endDate) return 0;
 
   const distance =
-  distances[from]?.[to] ||
-  distances[to]?.[from];
+    distances[from]?.[to] ||
+    distances[to]?.[from];
 
-if (!distance) return 0;
+  if (!distance) return 0;
 
   const priceMap = {
-  Dzire: 10,
-  Nexon: 12,
-  Creta: 13,
-  "XUV 700": 15,
-  Harrier: 16,
-  Safari: 17,
-  X3: 20,
-  "Mercedes E-Class": 25,
-  "Range Rover": 30,
-  "Bentley Flying Spur": 50
-};
+    Dzire: 10,
+    Nexon: 12,
+    Creta: 13,
+    "XUV 700": 15,
+    Harrier: 16,
+    Safari: 17,
+    X3: 20,
+    "Mercedes E-Class": 25,
+    "Range Rover": 30,
+    "Bentley Flying Spur": 50
+  };
 
-  return distance * (priceMap[selectedCar] || 10);
+  // 🔥 NEW: extra per day (customize this)
+  const extraPerDayMap = {
+    Dzire: 1000,
+    Nexon: 1200,
+    Creta: 1300,
+    "XUV 700": 1500,
+    Harrier: 1600,
+    Safari: 1700,
+    X3: 2000,
+    "Mercedes E-Class": 3000,
+    "Range Rover": 4000,
+    "Bentley Flying Spur": 7000
+  };
+
+  const diff = (new Date(endDate) - new Date(startDate)) / (1000*60*60*24);
+  const days = Math.ceil(diff);
+
+  if (days <= 0) return 0;
+
+  // ✅ Day 1 fare
+  const baseFare = distance * (priceMap[selectedCar] || 10);
+
+  // ✅ Extra days fare
+  const extraFare =
+    (days > 1)
+      ? (days - 1) * (extraPerDayMap[selectedCar] || 1000)
+      : 0;
+
+  return baseFare + extraFare;
 };
 
   const fetchProfile = async () => {
@@ -244,6 +272,12 @@ if (!distance) return 0;
 useEffect(() => {
   if (page === "profile") {
     fetchProfile();
+  }
+}, [page]);
+
+useEffect(() => {
+  if (page === "home") {
+    fetchBookings();
   }
 }, [page]);
   
@@ -486,7 +520,7 @@ const handleBooking = async () => {
   }
 
   const diff = (new Date(endDate) - new Date(startDate)) / (1000*60*60*24);
-  const days = Math.ceil(diff);
+  const days = Math.ceil(diff) + 1;
 
   if (days <= 0) {
     return setPopup({
@@ -495,6 +529,14 @@ const handleBooking = async () => {
       message:"End date must be after start date"
     });
   }
+ 
+  if (days > 14) {
+  return setPopup({
+    show:true,
+    type:"error",
+    message:"You can book a car for maximum 14 days only"
+  });
+}
 
   const isEdit = editBooking !== null;
 
@@ -934,22 +976,24 @@ if (page === "bookings") {
       <h2>📋 Your Bookings</h2>
       </div>
 
-      {bookings.map((b,i)=>(
-        <div key={i} style={{background:"#1f2937",padding:"15px",margin:"10px 0"}}>
+      {bookings.length === 0 ? (
+  <p>No bookings yet 🚫</p>
+) : (
+  bookings.map((b,i)=>(
+    <div key={i} style={{background:"#1f2937",padding:"15px",margin:"10px 0"}}>
+      <p>📍 {b.from_city} → {b.to_city}</p>
+      <p>🚗 {b.car}</p>
 
-          <p>📍 {b.from_city} → {b.to_city}</p>
-          <p>🚗 {b.car}</p>
+      <button onClick={()=>handleCancelBooking(b.id)}>
+        Cancel
+      </button>
 
-          <button onClick={()=>handleCancelBooking(b.id)}>
-            Cancel
-          </button>
-
-          <button onClick={()=>handleEditBooking(b)} style={{marginLeft:"10px"}}>
-          Edit
-          </button>
-
-        </div>
-      ))}
+      <button onClick={()=>handleEditBooking(b)} style={{marginLeft:"10px"}}>
+        Edit
+      </button>
+    </div>
+  ))
+)}
      <PopupComponent />
     </div>
   );
@@ -958,6 +1002,39 @@ if (page === "bookings") {
   // HOME UI
 
   const today = new Date().toISOString().split("T")[0];
+
+  const distance =
+  distances[from]?.[to] ||
+  distances[to]?.[from] || 0;
+
+const diff = (new Date(endDate) - new Date(startDate)) / (1000*60*60*24);
+const days = Math.ceil(diff) || 0;
+
+const priceMap = {
+  Dzire: 10,
+  Nexon: 12,
+  Creta: 13,
+  "XUV 700": 15,
+  Harrier: 16,
+  Safari: 17,
+  X3: 20,
+  "Mercedes E-Class": 25,
+  "Range Rover": 30,
+  "Bentley Flying Spur": 50
+};
+
+const extraPerDayMap = {
+  Dzire: 1000,
+  Nexon: 1200,
+  Creta: 1300,
+  "XUV 700": 1500,
+  Harrier: 1600,
+  Safari: 1700,
+  X3: 2000,
+  "Mercedes E-Class": 3000,
+  "Range Rover": 4000,
+  "Bentley Flying Spur": 7000
+};
 
   return (
     <div style={{background:"linear-gradient(120deg,#0b3c5d,#0f172a,#1e3a8a)"}}>
@@ -1032,6 +1109,9 @@ if (page === "bookings") {
       </div>
 
       <h3>Total: ₹{getFare(car)}</h3>
+      <p>Base Fare: ₹{distance * priceMap[car]}</p>
+      <p>Extra Days: {Math.max(0, days - 1)}</p>
+      <p>Extra Charges: ₹{(days - 1) * extraPerDayMap[car]}</p>
 
       {/* SELECT WITH PLACEHOLDER */}
       <select value={from} onChange={e=>setFrom(e.target.value)}>
@@ -1110,15 +1190,20 @@ if (page === "bookings") {
 
       {/* BOOKINGS */}
       <h3>Your Bookings</h3>
-      {bookings.map((b,i)=>(
-        <div key={i} style={{background:"#1f2937",margin:"10px",padding:"10px"}}>
-          <p>{b.from_city} → {b.to_city}</p>
-          <p>{formatDate(b.startDate)} → {formatDate(b.endDate)}</p>
-          <p>{b.car}</p>
 
-          
-        </div>
-      ))}
+{bookings.length === 0 ? (
+  <p style={{color:"#cbd5e1", marginTop:"10px"}}>
+    No bookings yet 🚫
+  </p>
+) : (
+  bookings.map((b,i)=>(
+    <div key={i} style={{background:"#1f2937",margin:"10px",padding:"10px"}}>
+      <p>{b.from_city} → {b.to_city}</p>
+      <p>{formatDate(b.startDate)} → {formatDate(b.endDate)}</p>
+      <p>{b.car}</p>
+    </div>
+  ))
+)}
     <PopupComponent />       
     </div>
   );
