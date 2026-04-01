@@ -450,6 +450,8 @@ const handleBooking = async () => {
   setBookingLoading(false); // 🔥 STOP LOADING
 };
 
+ // LANDING UI
+
  if (page === "landing") {
   return (
     <div style={{
@@ -574,6 +576,7 @@ const handleBooking = async () => {
         </button>
       </div>
 
+    <PopupComponent />
     </div>
   );
 }
@@ -642,30 +645,33 @@ const handleBooking = async () => {
 
   // SIGNUP UI
   if (page === "signup") {
-    return (
+  return (
+    <>
       <div style={{ textAlign:"center", marginTop:"120px" }}>
         <h2>Signup 🚗</h2>
 
         <input placeholder="Name" onChange={e=>setName(e.target.value)} /><br/><br/>
         <input placeholder="Email / UserID" onChange={e=>setEmail(e.target.value)} /><br/><br/>
-<input placeholder="Phone" onChange={e=>setPhone(e.target.value)} /><br/><br/>
-<input type="number" placeholder="Age" onChange={e=>setAge(e.target.value)} /><br/><br/>
+        <input placeholder="Phone" onChange={e=>setPhone(e.target.value)} /><br/><br/>
+        <input type="number" placeholder="Age" onChange={e=>setAge(e.target.value)} /><br/><br/>
 
-<select value={gender} onChange={e=>setGender(e.target.value)}>
-  <option value="">Select Gender</option>
-  <option value="Male">Male</option>
-  <option value="Female">Female</option>
-  <option value="Others">Others</option>
-</select>
+        <select value={gender} onChange={e=>setGender(e.target.value)}>
+          <option value="">Select Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Others">Others</option>
+        </select>
 
         <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} /><br/><br/>
 
         <button onClick={handleSignup}>Signup</button>
         <p onClick={()=>setPage("login")}>Login</p>
       </div>
-    );
-   <PopupComponent />
-  }
+
+      <PopupComponent />
+    </>
+  );
+}
 
   // PROFILE UI
   if (page === "profile") {
@@ -705,10 +711,11 @@ const handleBooking = async () => {
       >
         Delete Account
       </button>
+  
+     <PopupComponent />
 
     </div>
   );
- <PopupComponent />
 }
 
 // BOOKINGS TAB UI
@@ -747,10 +754,9 @@ if (page === "bookings") {
 
         </div>
       ))}
-
+     <PopupComponent />
     </div>
   );
-<PopupComponent />
 }
 
   // HOME UI
@@ -873,71 +879,7 @@ if (page === "bookings") {
           
         </div>
       ))}
-      {popup.show && (
-  <div style={{
-    position:"fixed",
-    top:0,
-    left:0,
-    width:"100%",
-    height:"100%",
-    background:"rgba(0,0,0,0.7)",
-    display:"flex",
-    justifyContent:"center",
-    alignItems:"center",
-    zIndex:999
-  }}>
-
-    <div style={{
-      background:"#111827",
-      padding:"30px",
-      borderRadius:"20px",
-      textAlign:"center",
-      minWidth:"320px",
-      animation:"popIn 0.35s ease",
-      boxShadow:"0 20px 50px rgba(0,0,0,0.7)"
-    }}>
-
-      {/* ICON */}
-      <div style={{
-        fontSize:"50px",
-        marginBottom:"10px",
-        animation:"bounce 0.6s"
-      }}>
-        {popup.type === "success" ? "✅" : "❌"}
-      </div>
-
-      {/* TITLE */}
-      <h2 style={{
-        color: popup.type==="success" ? "#22c55e" : "#ef4444",
-        marginBottom:"10px"
-      }}>
-        {popup.type==="success" ? "Success" : "Failed"}
-      </h2>
-
-      {/* MESSAGE */}
-      <p style={{color:"#d1d5db", marginBottom:"20px"}}>
-        {popup.message}
-      </p>
-
-      {/* BUTTON */}
-      <button
-        onClick={()=>setPopup({...popup, show:false})}
-        style={{
-          background: popup.type==="success" ? "#22c55e" : "#ef4444",
-          border:"none",
-          padding:"10px 20px",
-          borderRadius:"10px",
-          cursor:"pointer",
-          fontWeight:"bold"
-        }}
-      >
-        OK
-      </button>
-
-    </div>
-  </div>
-)}
-     
+    <PopupComponent />       
     </div>
   );
 }
