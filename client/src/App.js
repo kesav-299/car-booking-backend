@@ -233,14 +233,19 @@ if (!distance) return 0;
   };
 
   useEffect(() => {
-  const user_id = localStorage.getItem("user_id"); // ✅ ONLY localStorage
-
+  const user_id = localStorage.getItem("user_id"); 
   if (user_id) {
     setPage("home");
   } else {
     setPage("landing"); // optional safety
   }
 }, []);
+
+useEffect(() => {
+  if (page === "profile") {
+    fetchProfile();
+  }
+}, [page]);
   
   useEffect(() => {
   if (!popup.show) return;
