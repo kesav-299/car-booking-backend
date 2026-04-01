@@ -49,6 +49,55 @@ function App() {
     { name: "X3", img: "https://di-uploads-pod23.dealerinspire.com/bmwofowingsmills/uploads/2023/02/IMG_05281.jpg" }
   ];
 
+const PopupComponent = () => (
+  popup.show && (
+    <div style={{
+      position:"fixed",
+      top:0,
+      left:0,
+      width:"100%",
+      height:"100%",
+      background:"rgba(0,0,0,0.7)",
+      display:"flex",
+      justifyContent:"center",
+      alignItems:"center",
+      zIndex:999
+    }}>
+      <div style={{
+        background:"#111827",
+        padding:"30px",
+        borderRadius:"20px",
+        textAlign:"center",
+        minWidth:"320px"
+      }}>
+        <h2 style={{
+          color: popup.type==="success" ? "#22c55e" : "#ef4444"
+        }}>
+          {popup.type==="success" ? "Success" : "Failed"}
+        </h2>
+
+        <p style={{color:"#d1d5db"}}>
+          {popup.message}
+        </p>
+
+        <button
+          onClick={()=>setPopup({...popup, show:false})}
+          style={{
+            marginTop:"15px",
+            padding:"10px 20px",
+            borderRadius:"10px",
+            background: popup.type==="success" ? "#22c55e" : "#ef4444",
+            border:"none",
+            color:"white"
+          }}
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  )
+);
+
   // ✅ FULL DISTANCE MATRIX
   const distances = {
     Visakhapatnam: {
@@ -585,6 +634,7 @@ const handleBooking = async () => {
 >
   {loading ? "Loading..." : "Login"}
 </button>
+  <PopupComponent />
 
     </div>
   );
@@ -614,6 +664,7 @@ const handleBooking = async () => {
         <p onClick={()=>setPage("login")}>Login</p>
       </div>
     );
+   <PopupComponent />
   }
 
   // PROFILE UI
@@ -657,6 +708,7 @@ const handleBooking = async () => {
 
     </div>
   );
+ <PopupComponent />
 }
 
 // BOOKINGS TAB UI
@@ -698,6 +750,7 @@ if (page === "bookings") {
 
     </div>
   );
+<PopupComponent />
 }
 
   // HOME UI
