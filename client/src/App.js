@@ -15,8 +15,10 @@ function App() {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
 
-  const [car, setCar] = useState("Swift");
+  const [car, setCar] = useState("Dzire");
   const [bookings, setBookings] = useState([]);
 
   // ❌ NO DEFAULT VALUES
@@ -40,13 +42,17 @@ function App() {
 
   const cars = [
     { name: "Dzire", img: "https://i0.wp.com/bestsellingcarsblog.com/wp-content/uploads/2025/06/Maruti-Suzuki-DZire-India-May-2025.jpg?resize=600%2C398" },
-    { name: "Swift", img: "https://www.autovista.in/assets/img/new_cars_colour_variants/swift-colour-solid-fire-red.jpg" },
-    { name: "Nexon", img: "https://images.autox.com/uploads/cars/2024/02/tata-nexon-500x261.jpg" },
+    { name: "Nexon", img: "https://i.cdn.newsbytesapp.com/images/l62520240220190448.jpeg" },
     { name: "Creta", img: "https://cdn-s3.autocarindia.com/hyundai/Creta-Electric/500_5172.jpg?w=640&q=75" },
-    { name: "XUV 700", img: "https://asset.autocarindia.com/static/image-galleries/images/20260106_062810_99ca7cda.jpg?w=728&q=75" },
-    { name: "Harrier", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXOe3j2LEqZtPVlxBtvO0fAVNrTQUwMFfFoQ&s" },
-    { name: "Safari", img: "https://spn-sta.spinny.com/blog/20231103174155/new-Tata-Safari-1160x653.webp?compress=true&quality=80&w=1200&dpr=2.6" },
-    { name: "X3", img: "https://di-uploads-pod23.dealerinspire.com/bmwofowingsmills/uploads/2023/02/IMG_05281.jpg" }
+    { name: "XUV 700", img: "https://stimg.cardekho.com/images/carexteriorimages/930x620/Mahindra/XUV-7XO/12666/1768814047191/exterior-image-172.jpg" },
+    { name: "Harrier", img: "https://content.carlelo.com/media/news/tata-harrier-petrol-diesel-and-ev.webp" },
+    { name: "Safari", img: "https://cdn.optcms.com/www.indianewsnetwork.com/assets/2026/202601/20260108-img-20260108-aa63710ac8a67a88.webp" },
+    { name: "X3", img: "https://di-uploads-pod23.dealerinspire.com/bmwofowingsmills/uploads/2023/02/IMG_05281.jpg" },
+    { name: "Mercedes E-Class",  img:"https://cdn-s3.autocarindia.com/legacy/cdni/ExtraImages/20241017101242_Mercedes_E_Class_review_front_tracing.jpg" },
+    { name: "Range Rover", img: "https://www.focus2move.com/wp-content/uploads/2019/11/Land_Rover-Range_Rover_Velar_R-Dynamic_Black-2020.jpg" },
+    { name: "Bentley Flying Spur", img: "https://media.evo.co.uk/image/private/s--A4qBh8OK--/f_auto,t_content-image-full-desktop@1/v1740133659/evo/2025/02%20Feb/Bentley%20Flying%20Spur%20review%202025.jpg" }
+
+
   ];
 
 const PopupComponent = () => (
@@ -100,25 +106,60 @@ const PopupComponent = () => (
 
   // ✅ FULL DISTANCE MATRIX
   const distances = {
-    Visakhapatnam: {
-      Vizianagaram: 60,
-      Srikakulam: 120,
-      Araku: 110,
-      Vijayawada: 350,
-      Rajahmundry: 190,
-      Kakinada: 160,
-      Tirupati: 780,
-      Hyderabad: 620
-    },
-    Vizianagaram: { Visakhapatnam: 60, Srikakulam: 80, Araku: 130 },
-    Srikakulam: { Visakhapatnam: 120, Vizianagaram: 80 },
-    Araku: { Visakhapatnam: 110, Vizianagaram: 130 },
-    Vijayawada: { Visakhapatnam: 350, Rajahmundry: 160, Tirupati: 430, Hyderabad: 280 },
-    Rajahmundry: { Visakhapatnam: 190, Vijayawada: 160, Kakinada: 60 },
-    Kakinada: { Visakhapatnam: 160, Rajahmundry: 60, Hyderabad: 420 },
-    Tirupati: { Vijayawada: 430, Hyderabad: 560, Visakhapatnam: 780 },
-    Hyderabad: { Visakhapatnam: 620, Vijayawada: 280, Tirupati: 560 }
-  };
+  Visakhapatnam: {
+    Vizianagaram: 60, Srikakulam: 120, Araku: 110,
+    Rajahmundry: 190, Kakinada: 160, Vijayawada: 350,
+    Hyderabad: 620, Tirupati: 780
+  },
+
+  Vizianagaram: {
+    Visakhapatnam: 60, Srikakulam: 80, Araku: 130,
+    Rajahmundry: 210, Kakinada: 180, Vijayawada: 400,
+    Hyderabad: 680, Tirupati: 820
+  },
+
+  Srikakulam: {
+    Visakhapatnam: 120, Vizianagaram: 80, Araku: 150,
+    Rajahmundry: 270, Kakinada: 240, Vijayawada: 470,
+    Hyderabad: 720, Tirupati: 860
+  },
+
+  Araku: {
+    Visakhapatnam: 110, Vizianagaram: 130, Srikakulam: 150,
+    Rajahmundry: 250, Kakinada: 220, Vijayawada: 440,
+    Hyderabad: 700, Tirupati: 850
+  },
+
+  Rajahmundry: {
+    Visakhapatnam: 190, Vizianagaram: 210, Srikakulam: 270,
+    Araku: 250, Kakinada: 60, Vijayawada: 160,
+    Hyderabad: 450, Tirupati: 600
+  },
+
+  Kakinada: {
+    Visakhapatnam: 160, Vizianagaram: 180, Srikakulam: 240,
+    Araku: 220, Rajahmundry: 60, Vijayawada: 180,
+    Hyderabad: 420, Tirupati: 580
+  },
+
+  Vijayawada: {
+    Visakhapatnam: 350, Vizianagaram: 400, Srikakulam: 470,
+    Araku: 440, Rajahmundry: 160, Kakinada: 180,
+    Hyderabad: 280, Tirupati: 430
+  },
+
+  Hyderabad: {
+    Visakhapatnam: 620, Vizianagaram: 680, Srikakulam: 720,
+    Araku: 700, Rajahmundry: 450, Kakinada: 420,
+    Vijayawada: 280, Tirupati: 560
+  },
+
+  Tirupati: {
+    Visakhapatnam: 780, Vizianagaram: 820, Srikakulam: 860,
+    Araku: 850, Rajahmundry: 600, Kakinada: 580,
+    Vijayawada: 430, Hyderabad: 560
+  }
+};
 
   const formatDate = (date) => {
     if (!date) return "-";
@@ -130,22 +171,32 @@ const PopupComponent = () => (
   if (!from || !to || from === to) return 0;
 
   const distance =
-    distances[from]?.[to] ||
-    distances[to]?.[from] ||
-    100;
+  distances[from]?.[to] ||
+  distances[to]?.[from];
+
+if (!distance) return 0;
 
   const priceMap = {
-    Dzire: 10, Swift: 10, Nexon: 12,
-    Creta: 13, "XUV 700": 15,
-    Harrier: 16, Safari: 17, X3: 20
-  };
+  Dzire: 10,
+  Nexon: 12,
+  Creta: 13,
+  "XUV 700": 15,
+  Harrier: 16,
+  Safari: 17,
+  X3: 20,
+  "Mercedes E-Class": 25,
+  "Range Rover": 30,
+  "Bentley Flying Spur": 50
+};
 
   return distance * (priceMap[selectedCar] || 10);
 };
 
   const fetchProfile = async () => {
 
-  const user_id = localStorage.getItem("user_id");
+  const user_id =
+  localStorage.getItem("user_id") ||
+  sessionStorage.getItem("user_id");
 
   if (!user_id || user_id === "undefined") return;
 
@@ -171,7 +222,9 @@ const PopupComponent = () => (
   // ❌ AUTO LOGIN REMOVED
 
   const fetchBookings = async () => {
-    const user_id = localStorage.getItem("user_id");
+    const user_id =
+  localStorage.getItem("user_id") ||
+  sessionStorage.getItem("user_id");
     if (!user_id) return;
 
     const res = await fetch(`https://car-booking-backend-dhaw.onrender.com/bookings/${user_id}`);
@@ -183,12 +236,26 @@ const PopupComponent = () => (
     if (page === "home") fetchBookings();
     if (page === "profile") fetchProfile();
   }, [page]);
+  
+  useEffect(() => {
+  if (!popup.show) return;
+
+  const timer = setTimeout(() => {
+    setPopup({ show:false, type:"", message:"" });
+  }, 2000);
+
+  return () => clearTimeout(timer);
+}, [popup]);
 
   const handleLogin = async () => {
 
   if (!email || !password) {
-    return alert("Please enter email and password");
-  }
+  return setPopup({
+    show: true,
+    type: "error",
+    message: "Please enter email and password"
+  });
+}
 
   setLoading(true);
 
@@ -228,13 +295,24 @@ const PopupComponent = () => (
     }
 
     // ✅ SAVE DATA
-    localStorage.setItem("user_id", data.userId);
-    localStorage.setItem("name", data.name);
-    setName(data.name);
+    if (rememberMe) {
+  localStorage.setItem("user_id", data.userId);
+} else {
+  sessionStorage.setItem("user_id", data.userId);
+}
+
+localStorage.setItem("name", data.name);
+setName(data.name);
+
+// ✅ success message
+setLoginSuccess("Login Successful ✅");
 
 setTimeout(() => {
+  setLoginSuccess("");
   setPage("home");
-}, 100);    setLoading(false);
+}, 1500);
+
+setLoading(false);
 
   } catch (err) {
     console.log(err);
@@ -250,19 +328,33 @@ setTimeout(() => {
 };
 
   const handleLogout = () => {
-    localStorage.removeItem("user_id");
-    setPage("login");
-  };
+  localStorage.removeItem("user_id");
+  sessionStorage.removeItem("user_id");
+
+  // 🔥 CLEAR FIELDS
+  setEmail("");
+  setPassword("");
+
+  setPage("login");
+};
 
   const handleSignup = async () => {
 
     if (!name || !email || !password || !age || !gender || !phone) {
-    return alert("Please fill all fields");
+    return setPopup({
+  show:true,
+  type:"error",
+  message:"Please fill all fields"
+});
   }
 
   if (age < 18) {
-    return alert("You must be 18+ to register");
-  }
+  return setPopup({
+    show:true,
+    type:"error",
+    message:"You must be 18+ to register"
+  });
+}
 
     await fetch("https://car-booking-backend-dhaw.onrender.com/signup", {
       method: "POST",
@@ -276,10 +368,16 @@ setTimeout(() => {
   
   const handleUpdateProfile = async () => {
 
-  const user_id = localStorage.getItem("user_id");
+  const user_id =
+  localStorage.getItem("user_id") ||
+  sessionStorage.getItem("user_id");
 
   if (!name || !email || !age || !gender || !phone) {
-    return alert("Please fill all fields");
+    return setPopup({
+  show:true,
+  type:"error",
+  message:"Please fill all fields"
+});
   }
 
   const res = await fetch("https://car-booking-backend-dhaw.onrender.com/update-profile", {
@@ -302,7 +400,9 @@ setTimeout(() => {
  
   const handleDeleteAccount = async () => {
 
-  const user_id = localStorage.getItem("user_id");
+  const user_id =
+  localStorage.getItem("user_id") ||
+  sessionStorage.getItem("user_id");
 
   if (!window.confirm("Are you sure?")) return;
 
@@ -315,6 +415,7 @@ setTimeout(() => {
   alert("Account deleted");
 
   localStorage.clear();
+  sessionStorage.clear();
   setPage("landing");
 };
  
@@ -389,7 +490,9 @@ const handleBooking = async () => {
   try {
     setBookingLoading(true); // 🔥 START LOADING
 
-    const user_id = localStorage.getItem("user_id");
+    const user_id =
+  localStorage.getItem("user_id") ||
+  sessionStorage.getItem("user_id");
     
     const url = isEdit
      ? "https://car-booking-backend-dhaw.onrender.com/update-booking"
@@ -455,17 +558,17 @@ const handleBooking = async () => {
  if (page === "landing") {
   return (
     <div style={{
-      minHeight:"100vh",
+      minHeight:"50vh",
       background:"linear-gradient(120deg,#020617,#0f172a,#1e40af)",
       color:"white",
-      padding:"20px",
+      padding:"25px",
       overflow:"hidden"
     }}>
 
      <img 
   src={logo} 
   alt="Vargoo" 
-  style={{width:"350px", margin:"1px auto", display:"block"}}
+  style={{width:"350px", margin:"0px auto", display:"block"}}
 />
 
       {/* NAVBAR */}
@@ -481,7 +584,7 @@ const handleBooking = async () => {
       {/* HERO */}
       <div style={{
         textAlign:"center",
-        marginTop:"80px",
+        marginTop:"40px",
         animation:"fadeUp 1s ease"
       }}>
         <h1 style={{
@@ -495,7 +598,7 @@ const handleBooking = async () => {
         </h1>
 
         <p style={{
-          marginTop:"15px",
+          marginTop:"10px",
           color:"#cbd5e1",
           maxWidth:"600px",
           marginInline:"auto"
@@ -583,63 +686,111 @@ const handleBooking = async () => {
 
   // LOGIN UI
 
-  if (page === "login") {
+ if (page === "login") {
   return (
-    <div style={{ textAlign:"center", marginTop:"120px" }}>
-    
-    <img src={logo} alt="logo" style={{width:"180px"}} />
-
-      {/* 🔥 TOP BAR */}
+    <>
       <div style={{
+        minHeight:"100vh",
         display:"flex",
         justifyContent:"center",
-        gap:"20px",
-        marginBottom:"20px"
+        alignItems:"center",
+        background:"linear-gradient(120deg,#020617,#0f172a,#1e40af)"
       }}>
-        <button onClick={()=>setPage("landing")}>
-          🏠 Home
-        </button>
 
-        <button onClick={()=>setPage("signup")}>
-          Signup
-        </button>
+        <div style={{
+          background:"rgba(255,255,255,0.05)",
+          backdropFilter:"blur(15px)",
+          padding:"40px",
+          borderRadius:"20px",
+          width:"450px",
+          textAlign:"center",
+          boxShadow:"0 20px 50px rgba(0,0,0,0.5)"
+        }}>
+
+          <img src={logo} style={{width:"250px"}} />
+
+          <h2 style={{marginBottom:"5px"}}>Login</h2>
+
+          <input 
+  value={email}
+  placeholder="Email"
+  style={{width:"100%",padding:"22px",marginBottom:"10px"}}
+  onChange={e=>setEmail(e.target.value)}
+/>
+
+<input 
+  value={password}
+  type="password"
+  placeholder="Password"
+  style={{width:"100%",padding:"22px",marginBottom:"15px"}}
+  onChange={e=>setPassword(e.target.value)}
+/>
+
+ <div style={{
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  marginBottom: "15px"
+}}>
+  <input 
+    type="checkbox"
+    checked={rememberMe}
+    onChange={()=>setRememberMe(!rememberMe)}
+    style={{
+      width: "16px",
+      height: "16px",
+      cursor: "pointer"
+    }}
+  />
+
+  <label style={{
+    color: "white",
+    cursor: "pointer",
+    fontSize: "14px"
+  }}>
+    Remember Me
+  </label>
+</div>
+
+          {/* 🔥 UPDATED BUTTON HERE */}
+          <button 
+            onClick={handleLogin}
+            disabled={loading}
+            style={{
+              width:"100%",
+              padding:"14px",
+              borderRadius:"10px",
+              background: loading ? "#1e40af" : "#2563eb",
+              color:"white",
+              fontSize:"16px",
+              border:"none",
+              cursor: loading ? "not-allowed" : "pointer",
+              display:"flex",
+              justifyContent:"center",
+              alignItems:"center",
+              gap:"8px"
+            }}
+          >
+            {loading ? (
+              <>
+                <div className="spinner"></div>
+                Logging in...
+              </>
+            ) : "Login"}
+          </button>
+
+          {/* ✅ success message */}
+          {loginSuccess && (
+            <p style={{color:"#22c55e",marginTop:"10px"}}>
+              {loginSuccess}
+            </p>
+          )}
+
+        </div>
       </div>
 
-      <h2>Login 🚗</h2>
-
-      <input 
-        placeholder="Email / UserID" 
-        onChange={e=>setEmail(e.target.value)}
-        onKeyDown={(e)=> e.key==="Enter" && handleLogin()}
-      /><br/><br/>
-
-      <input 
-        type="password" 
-        placeholder="Password" 
-        onChange={e=>setPassword(e.target.value)}
-        onKeyDown={(e)=> e.key==="Enter" && handleLogin()}
-      /><br/><br/>
-
-     <button 
-  onClick={handleLogin}
-  disabled={loading}
-  style={{
-    width:"220px",
-    padding:"12px",
-    borderRadius:"10px",
-    background:"#2563eb",
-    color:"white",
-    fontSize:"16px",
-    border:"none",
-    cursor:"pointer",
-    marginTop:"10px",
-    fontWeight:"bold",  }}
->
-  {loading ? "Loading..." : "Login"}
-</button>
-  <PopupComponent />
-
-    </div>
+      <PopupComponent />
+    </>
   );
 }
 
