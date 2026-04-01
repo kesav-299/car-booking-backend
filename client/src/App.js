@@ -233,19 +233,14 @@ if (!distance) return 0;
   };
 
   useEffect(() => {
-    if (page === "home") fetchBookings();
-    if (page === "profile") fetchProfile();
-  }, [page]);
+  const user_id = localStorage.getItem("user_id"); // ✅ ONLY localStorage
 
- useEffect(() => {
-    const user_id =
-      localStorage.getItem("user_id") ||
-      sessionStorage.getItem("user_id");
-
-    if (user_id) {
-      setPage("home");
-    }
-  }, []);
+  if (user_id) {
+    setPage("home");
+  } else {
+    setPage("landing"); // optional safety
+  }
+}, []);
   
   useEffect(() => {
   if (!popup.show) return;
@@ -307,14 +302,13 @@ if (!distance) return 0;
     }
 
     // ✅ SAVE DATA
-    if (rememberMe) {
+   if (rememberMe) {
   localStorage.setItem("user_id", data.userId);
+  localStorage.setItem("name", data.name);
 } else {
   sessionStorage.setItem("user_id", data.userId);
+  sessionStorage.setItem("name", data.name);
 }
-
-localStorage.setItem("name", data.name);
-setName(data.name);
 
 // ✅ success message
 setLoginSuccess("Login Successful ✅");
@@ -347,7 +341,7 @@ setLoading(false);
   setEmail("");
   setPassword("");
 
-  setPage("login");
+  setPage("landing");
 };
 
   const handleSignup = async () => {
@@ -723,6 +717,13 @@ const handleBooking = async () => {
 
           <h2 style={{marginBottom:"5px"}}>Login</h2>
 
+          <form
+  onSubmit={(e) => {
+    e.preventDefault();
+    handleLogin();
+  }}
+>
+       
           <input 
   value={email}
   placeholder="Email"
@@ -765,8 +766,8 @@ const handleBooking = async () => {
 </div>
 
           {/* 🔥 UPDATED BUTTON HERE */}
-          <button 
-  onClick={handleLogin}
+          <button
+  type="submit"
   disabled={loading}
   style={{
     width:"100%",
@@ -798,7 +799,7 @@ const handleBooking = async () => {
   </p>
 )}
 
-{/* 🔥 ADD THIS BLOCK HERE */}
+
 <div style={{marginTop:"15px"}}>
 
   <p 
@@ -821,8 +822,11 @@ const handleBooking = async () => {
     }}
   >
     ⬅ Back to Home
+
+
   </p>
 </div>  
+ </form>
         </div>
    
       </div>
