@@ -999,6 +999,137 @@ if (page === "bookings") {
   );
 }
 
+if (page === "dbms") {
+  return (
+    <div style={{
+  padding:"20px",
+  color:"white",
+  background:"#0f172a",
+  minHeight:"100vh"
+}}>
+
+<h2>📊 DBMS Case Study – Car Booking System</h2>
+
+{/* 🟣 DATABASE */}
+<h3>Database</h3>
+<pre>
+{`CREATE DATABASE car_booking;
+USE car_booking;`}
+</pre>
+
+{/* 🟢 UN-NORMALIZED */}
+<h3>Un-Normalized Table</h3>
+<p>
+UserID | Name | Email | Phone | Car | From | To | StartDate | EndDate
+</p>
+<p>❌ Data redundancy and inconsistency</p>
+
+{/* 🟢 DECOMPOSITION */}
+<h3>Table Decomposition</h3>
+<ul>
+  <li>Users Table – stores user data</li>
+  <li>Booking Table – stores booking data</li>
+</ul>
+
+{/* 🟢 NORMALIZATION */}
+<h3>Normalization</h3>
+<ul>
+  <li>1NF: Atomic values</li>
+  <li>2NF: Removed partial dependency</li>
+  <li>3NF: No transitive dependency</li>
+</ul>
+
+{/* 🟢 TABLES */}
+<h3>Users Table</h3>
+<pre>
+{`CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100),
+  email VARCHAR(100) UNIQUE,
+  password VARCHAR(255),
+  age INT,
+  gender VARCHAR(10),
+  phone VARCHAR(15)
+);`}
+</pre>
+
+<h3>Booking Table</h3>
+<pre>
+{`CREATE TABLE booking (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100),
+  car VARCHAR(50),
+  days INT,
+  user_id INT,
+  from_city VARCHAR(100),
+  to_city VARCHAR(100),
+  startDate DATE,
+  endDate DATE,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);`}
+</pre>
+
+{/* 🟡 USER QUERIES */}
+<h3>User Queries</h3>
+<pre>
+{`-- Login
+SELECT * FROM users WHERE email = ?;
+
+-- Signup
+INSERT INTO users (name, email, password, age, gender, phone)
+VALUES (?, ?, ?, ?, ?, ?);
+
+-- Get Profile
+SELECT * FROM users WHERE id = ?;
+
+-- Update Profile
+UPDATE users SET name=?, email=?, age=?, gender=?, phone=? WHERE id=?;
+
+-- Delete Account
+DELETE FROM users WHERE id=?;`}
+</pre>
+
+{/* 🚗 BOOKING QUERIES */}
+<h3>Booking Queries</h3>
+<pre>
+{`-- Create Booking
+INSERT INTO booking (name, car, days, user_id, from_city, to_city, startDate, endDate)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+-- Check Overlap
+SELECT * FROM booking
+WHERE user_id = ?
+AND ((startDate <= ? AND endDate >= ?) OR (startDate <= ? AND endDate >= ?));
+
+-- Get Bookings
+SELECT * FROM booking WHERE user_id = ? ORDER BY startDate DESC;
+
+-- Update Booking
+UPDATE booking SET car=?, from_city=?, to_city=?, startDate=?, endDate=? WHERE id=?;
+
+-- Cancel Booking
+DELETE FROM booking WHERE id=?;`}
+</pre>
+
+{/* 🟣 BACK BUTTON */}
+<button
+  onClick={()=>setPage("home")}
+  style={{
+    marginTop:"20px",
+    padding:"10px",
+    borderRadius:"8px",
+    background:"#2563eb",
+    color:"white",
+    border:"none"
+  }}
+>
+  ⬅ Back
+</button>
+
+    </div>
+  );
+}
+
   // HOME UI
 
   const today = new Date().toISOString().split("T")[0];
@@ -1047,18 +1178,36 @@ const extraPerDayMap = {
 }}>
 
   {/* LEFT: LOGO */}
+  <div style={{display:"flex", alignItems:"center", gap:"-10px"}}>
+
   <img 
     src={logo} 
     alt="logo" 
     style={{width:"219px"}} 
   />
 
+  <span
+    onClick={()=>setPage("dbms")}
+    style={{
+      fontSize:"20px",
+      color:"transparent",
+      cursor:"pointer",
+      position:"relative",
+      top:"-10px"
+    }}
+  >
+    DBMS
+  </span>
+
+</div>
+
+  
   {/* RIGHT: MENU */}
   <div style={{
     display:"flex",
     gap:"12px"
   }}>
-    <button onClick={()=>setPage("landing")}>Home</button>
+        <button onClick={()=>setPage("landing")}>Home</button>
     <button onClick={()=>setPage("profile")}>Profile</button>
     <button onClick={()=>setPage("bookings")}>Bookings</button>
     <button onClick={handleLogout} style={{background:"#dc2626"}}>
