@@ -707,7 +707,7 @@ const handleBooking = async () => {
           boxShadow:"0 20px 50px rgba(0,0,0,0.5)"
         }}>
 
-          <img src={logo} style={{width:"250px"}} />
+          <img src={logo} alt="Vargoo Logo" style={{width:"250px"}} />
 
           <h2 style={{marginBottom:"5px"}}>Login</h2>
 
